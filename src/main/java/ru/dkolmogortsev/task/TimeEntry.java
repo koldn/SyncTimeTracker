@@ -1,19 +1,30 @@
 package ru.dkolmogortsev.task;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.hibernate.search.annotations.Indexed;
+
 /**
  * Created by dkolmogortsev on 2/25/17.
  */
+@Indexed
 public class TimeEntry implements Comparable<TimeEntry>
 {
     private long start;
     private long end;
     private long duration;
+    private String entryDate;
     private String taskId;
-
     public TimeEntry(long start, Task task)
     {
         this.start = start;
+        this.entryDate = new SimpleDateFormat("yyyy/MM/dd").format(new Date(this.start));
         this.taskId = task.getUUID();
+    }
+
+    public String getEntryDate()
+    {
+        return entryDate;
     }
 
     public String getTaskId()

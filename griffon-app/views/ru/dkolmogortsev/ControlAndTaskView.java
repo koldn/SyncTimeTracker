@@ -2,36 +2,43 @@ package ru.dkolmogortsev;
 
 import griffon.core.artifact.GriffonView;
 import griffon.metadata.ArtifactProviderFor;
+import java.util.Collections;
+import java.util.Map;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.stage.Stage;
-import org.codehaus.griffon.runtime.javafx.artifact.AbstractJavaFXGriffonView;
-
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.Map;
+import org.codehaus.griffon.runtime.javafx.artifact.AbstractJavaFXGriffonView;
 
 /**
  * Created by dkolmogortsev on 2/7/17.
  */
 @ArtifactProviderFor(GriffonView.class)
-public class ControlAndTaskView extends AbstractJavaFXGriffonView {
+public class ControlAndTaskView extends AbstractJavaFXGriffonView
+{
 
     private GridPane pane;
 
+    public GridPane getPane()
+    {
+        return pane;
+    }
 
     @Override
-    public void mvcGroupInit(@Nonnull Map<String, Object> args) {
+    public void mvcGroupInit(
+            @Nonnull
+                    Map<String, Object> args)
+    {
         createMVCGroup("controlPanel");
         createMVCGroup("taskPanel");
     }
 
     @Override
-    public void initUI() {
-        Stage stage = (Stage) getApplication().createApplicationContainer(Collections.emptyMap());
+    public void initUI()
+    {
+        Stage stage = (Stage)getApplication().createApplicationContainer(Collections.emptyMap());
         pane = new GridPane();
         ColumnConstraints constr = new ColumnConstraints();
         constr.setPercentWidth(100.0);
@@ -50,7 +57,8 @@ public class ControlAndTaskView extends AbstractJavaFXGriffonView {
         getApplication().getWindowManager().attach("main", stage);
     }
 
-    public GridPane getAnchorPane(){
+    public GridPane getAnchorPane()
+    {
         return pane;
     }
 }

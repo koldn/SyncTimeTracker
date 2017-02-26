@@ -3,8 +3,11 @@ package ru.dkolmogortsev;
 import griffon.core.artifact.GriffonView;
 import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -12,11 +15,13 @@ import javafx.scene.layout.GridPane;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
 import org.reactfx.EventStreams;
-import ru.dkolmogortsev.controls.TimeEntryStartButton;
+import ru.dkolmogortsev.controls.TimeEntryButton;
 import ru.dkolmogortsev.messages.StartTask;
 import ru.dkolmogortsev.task.Task;
 import ru.dkolmogortsev.task.TimeEntry;
 import ru.dkolmogortsev.task.storage.TaskStorage;
+import ru.dkolmogortsev.task.storage.TimeEntriesStorage;
+import ru.dkolmogortsev.utils.TimeEntryUiHelper;
 
 /**
  * Created by dkolmogortsev on 2/7/17.
@@ -34,6 +39,9 @@ public class TaskPanelView extends AbstractGriffonView
     @Inject
     private TaskStorage storage;
 
+    @Inject
+    private TimeEntriesStorage entriesStorage;
+
     private GridPane pane;
 
     private FlowPane entriesPane;
@@ -42,10 +50,9 @@ public class TaskPanelView extends AbstractGriffonView
     public void initUI()
     {
         ScrollPane scrollPane = new ScrollPane();
-        //scrollPane.fitToHeightProperty();
         scrollPane.fitToWidthProperty();
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         scrollPane.prefHeight(400);
         pane = new GridPane();
         pane.setGridLinesVisible(true);
@@ -57,7 +64,7 @@ public class TaskPanelView extends AbstractGriffonView
         pane.addRow(0, new Label("Today"));
 
         entriesPane = new FlowPane();
-        entriesPane.setPrefWidth(pane.getWidth());
+        entriesPane.prefWidthProperty().bind(pane.widthProperty());
         pane.addRow(1, entriesPane);
         scrollPane.setContent(pane);
         parentView.getAnchorPane().addRow(1, scrollPane);
@@ -65,18 +72,44 @@ public class TaskPanelView extends AbstractGriffonView
         EventStreams.changesOf(model.newTimeEntryProperty()).subscribe(timeEntryChange ->
         {
             TimeEntry newValue = timeEntryChange.getNewValue();
-            GridPane entry = new GridPane();
-
-            Task t = storage.getTask(newValue.getTaskId());
-
-            entry.prefWidthProperty().bind(pane.widthProperty());
-            TimeEntryStartButton timeEntryStartButton = new TimeEntryStartButton(t);
-            EventStreams.eventsOf(timeEntryStartButton, MouseEvent.MOUSE_CLICKED).subscribe(
-                    mouseEvent -> getApplication().getEventRouter().publishEvent(new StartTask(t.getUUID())));
-            entry.addRow(0, new Label(newValue.getId()), new Label(String.valueOf(newValue.getStart())),
-                    timeEntryStartButton);
-            entriesPane.getChildren().add(0, entry);
+            buildTimeEntryLine(newValue);
+            entriesStorage.getEntriesGroupedByDay();
         });
 
+    }
+
+    private void buildTimeEntryLine(TimeEntry newValue)
+    {
+        GridPane header = (GridPane)parentView.getPane().getChildren().get(0);//Always header
+        GridPane entry = new GridPane();
+        entry.getColumnConstraints().addAll(TimeEntryUiHelper.getConstraints());
+        entry.prefHeight(100);
+        Task t = storage.getTask(newValue.getTaskId());
+
+        entry.prefWidthProperty().bind(pane.widthProperty());
+        TimeEntryButton timeEntryButton = new TimeEntryButton(t);
+        bindHoverIcons(timeEntryButton, "time.entry.start.hover", "time.entry.start.normal");
+        timeEntryButton.prefHeightProperty().bind(header.heightProperty().multiply(0.75));
+
+        TimeEntryButton deleteButton = new TimeEntryButton(t);
+        bindHoverIcons(deleteButton, "time.entry.delete.hover", "time.entry.delete.normal");
+        deleteButton.prefHeightProperty().bind(header.heightProperty().multiply(0.75));
+
+        EventStreams.eventsOf(timeEntryButton, MouseEvent.MOUSE_CLICKED)
+                .subscribe(mouseEvent -> getApplication().getEventRouter().publishEvent(new StartTask(t.getUUID())));
+        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()),
+                new Label(String.valueOf(newValue.getDuration())), new Label(String.valueOf(newValue.getStart())),
+                new Label(String.valueOf(newValue.getEnd())), timeEntryButton, deleteButton);
+        entriesPane.getChildren().add(0, entry);
+    }
+
+    private void bindHoverIcons(TimeEntryButton timeEntryButton, String hoverIconPath, String normalIconPath)
+    {
+        ImageView hoverIcon = new ImageView(
+                (String)getApplication().getResourceResolver().resolveResource(hoverIconPath));
+        ImageView noHover = new ImageView(
+                (String)getApplication().getResourceResolver().resolveResource(normalIconPath));
+        timeEntryButton.graphicProperty()
+                .bind(Bindings.when(timeEntryButton.hoverProperty()).then(hoverIcon).otherwise(noHover));
     }
 }

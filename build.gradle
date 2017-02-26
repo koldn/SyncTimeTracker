@@ -1,0 +1,76 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+
+    }
+
+    dependencies {
+        classpath 'org.codehaus.griffon:gradle-griffon-plugin:2.9.1'
+        classpath 'net.nemerosa:versioning:2.5.0'
+    }
+}
+
+apply plugin: 'groovy'
+apply plugin: 'org.codehaus.griffon.griffon'
+apply plugin: 'net.nemerosa.versioning'
+
+Date buildTimeAndDate = new Date()
+ext {
+    buildDate = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
+    buildTime = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
+    macosx = System.getProperty('os.name').contains('Mac OS')
+}
+
+griffon {
+    disableDependencyResolution = false
+    includeGroovyDependencies = false
+    version = '2.9.1'
+    toolkit = 'javafx'
+    applicationProperties = [
+        'build.date'    : buildDate,
+        'build.time'    : buildTime,
+        'build.revision': versioning.info.commit
+    ]
+}
+def infinispanVersion = '8.2.5.Final'
+
+mainClassName = 'ru.dkolmogortsev.Launcher'
+
+
+dependencies {
+    compile "org.codehaus.griffon:griffon-guice:${griffon.version}"
+    compile group: 'org.reactfx', name: 'reactfx', version: '1.4.1'
+    compile 'org.kordamp.bootstrapfx:bootstrapfx-core:0.2.1'
+    compile "org.infinispan:infinispan-core:${infinispanVersion}"
+    compile "org.infinispan:infinispan-query:${infinispanVersion}"
+    compile group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12'
+
+
+
+    runtime 'org.slf4j:slf4j-simple:1.7.21'
+
+    testCompile "org.codehaus.griffon:griffon-javafx-test:${griffon.version}"
+    testCompile "org.codehaus.groovy:groovy-all:${groovyVersion}"
+    testCompile "org.spockframework:spock-core:${spockVersion}"
+}
+
+task sourceJar(type: Jar) {
+    group 'Build'
+    description 'An archive of the source code'
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+compileGroovy.enabled = false
+
+
+import java.text.SimpleDateFormat
+
+
+
+if (hasProperty('debugRun') && ((project.debugRun as boolean))) {
+    run {
+        jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
+    }
+}

@@ -1,8 +1,5 @@
 package ru.dkolmogortsev;
 
-import griffon.core.artifact.GriffonView;
-import griffon.inject.MVCMember;
-import griffon.metadata.ArtifactProviderFor;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -12,15 +9,23 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+
 import javax.inject.Inject;
+
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
+import org.joda.time.Duration;
 import org.reactfx.EventStreams;
+
+import griffon.core.artifact.GriffonView;
+import griffon.inject.MVCMember;
+import griffon.metadata.ArtifactProviderFor;
 import ru.dkolmogortsev.controls.TimeEntryButton;
 import ru.dkolmogortsev.messages.StartTask;
 import ru.dkolmogortsev.task.Task;
 import ru.dkolmogortsev.task.TimeEntry;
 import ru.dkolmogortsev.task.storage.TaskStorage;
 import ru.dkolmogortsev.task.storage.TimeEntriesStorage;
+import ru.dkolmogortsev.utils.ElapsedTimeFormatter;
 import ru.dkolmogortsev.utils.TimeEntryUiHelper;
 
 /**
@@ -69,8 +74,11 @@ public class TaskPanelView extends AbstractGriffonView
         scrollPane.setContent(pane);
         parentView.getAnchorPane().addRow(1, scrollPane);
 
-        EventStreams.changesOf(model.newTimeEntryProperty()).subscribe(timeEntryChange ->
-        {
+        EventStreams.changesOf(model.groupedTimeEntriesProperty()).subscribe(mapChange -> {
+            System.out.println(mapChange);
+        });
+
+        EventStreams.changesOf(model.newTimeEntryProperty()).subscribe(timeEntryChange -> {
             TimeEntry newValue = timeEntryChange.getNewValue();
             buildTimeEntryLine(newValue);
             entriesStorage.getEntriesGroupedByDay();
@@ -98,8 +106,10 @@ public class TaskPanelView extends AbstractGriffonView
         EventStreams.eventsOf(timeEntryButton, MouseEvent.MOUSE_CLICKED)
                 .subscribe(mouseEvent -> getApplication().getEventRouter().publishEvent(new StartTask(t.getUUID())));
         entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()),
-                new Label(String.valueOf(newValue.getDuration())), new Label(String.valueOf(newValue.getStart())),
-                new Label(String.valueOf(newValue.getEnd())), timeEntryButton, deleteButton);
+                new Label(
+                        ElapsedTimeFormatter.formatElapsed(new Duration(newValue.getDuration()).getStandardSeconds())),
+                new Label(TimeEntryUiHelper.formatDate(newValue.getStart())),
+                new Label(TimeEntryUiHelper.formatDate(newValue.getEnd())), timeEntryButton, deleteButton);
         entriesPane.getChildren().add(0, entry);
     }
 

@@ -2,7 +2,11 @@ package ru.dkolmogortsev.task;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
 
 /**
  * Created by dkolmogortsev on 2/25/17.
@@ -13,8 +17,11 @@ public class TimeEntry implements Comparable<TimeEntry>
     private long start;
     private long end;
     private long duration;
+
+    @Field(store = Store.YES, analyze = Analyze.NO, indexNullAs = Field.DEFAULT_NULL_TOKEN)
     private String entryDate;
     private String taskId;
+
     public TimeEntry(long start, Task task)
     {
         this.start = start;

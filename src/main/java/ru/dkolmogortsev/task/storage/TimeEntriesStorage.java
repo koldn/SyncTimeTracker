@@ -1,15 +1,20 @@
 package ru.dkolmogortsev.task.storage;
 
+import java.sql.Time;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
 import org.infinispan.Cache;
 import org.infinispan.query.Search;
 import org.infinispan.query.dsl.Expression;
 import org.infinispan.query.dsl.QueryFactory;
 import org.infinispan.query.dsl.SortOrder;
+
 import ru.dkolmogortsev.task.TimeEntry;
 
 /**
@@ -39,11 +44,18 @@ public class TimeEntriesStorage
         return infStorage.get(timeEntryId);
     }
 
-    public void getEntriesGroupedByDay()
+    public List<TimeEntry> getByEntryDate(String entryDate)
     {
-        List<String> entryDate = factory.from(TimeEntry.class).select(Expression.property("entryDate")).build().list();
-        Map<String, List<TimeEntry>> listMap = entryDate.stream().collect(Collectors.toMap(Object::toString,
-                s -> factory.having("entryDate").eq(s).toBuilder().orderBy("entryDate", SortOrder.DESC).build()
-                        .list()));
+        return factory.from(Time.class).having("entryDate").eq(entryDate).toBuilder().build().list();
+    }
+
+    public Map<String, List<Object>> getEntriesGroupedByDay()
+    {
+        List<Object[]> resultSet = factory.from(TimeEntry.class).select(Expression.property("entryDate"))
+                .groupBy("entryDate").build().list();
+        return resultSet.stream().map(objects -> objects[0].toString())
+                .collect(Collectors.toMap(Function.identity(), s -> factory.from(TimeEntry.class).having("entryDate")
+                        .eq(s).toBuilder().orderBy("entryDate", SortOrder.DESC).build().list()));
+
     }
 }

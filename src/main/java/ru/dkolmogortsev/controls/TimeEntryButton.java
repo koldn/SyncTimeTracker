@@ -2,6 +2,7 @@ package ru.dkolmogortsev.controls;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+
 import ru.dkolmogortsev.task.Task;
 
 /**
@@ -15,7 +16,7 @@ public class TimeEntryButton extends Button
     {
         super();
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        //getStyleClass().clear();
+        getStyleClass().clear();
         setAlignment(Pos.CENTER);
         this.taskId = task.getUUID();
     }

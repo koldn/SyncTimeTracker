@@ -53,6 +53,7 @@ public class ControlPanelController extends AbstractGriffonController
             model.startTimer();
         }
         else{
+            stopBackgroundBackup();
             TimeEntry te = entriesStorage.get(model.currentTimeEntryIdProperty().get());
             te.stop();
             getApplication().getEventRouter().publishEvent(new TaskStopped(te.getId()));
@@ -68,6 +69,12 @@ public class ControlPanelController extends AbstractGriffonController
             te.updateDuration(model.getElapsedProperty());
             entriesStorage.save(te);
         });
+    }
+
+    @Threading(Policy.OUTSIDE_UITHREAD)
+    private void stopBackgroundBackup()
+    {
+        backUpTimer.stop();
     }
 
     @Threading(Threading.Policy.INSIDE_UITHREAD_ASYNC)

@@ -1,5 +1,9 @@
 package ru.dkolmogortsev;
 
+import griffon.core.artifact.GriffonView;
+import griffon.inject.MVCMember;
+import griffon.metadata.ArtifactProviderFor;
+import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -9,18 +13,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-
 import javax.inject.Inject;
-
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
 import org.joda.time.Duration;
 import org.reactfx.EventStreams;
-
-import griffon.core.artifact.GriffonView;
-import griffon.inject.MVCMember;
-import griffon.metadata.ArtifactProviderFor;
 import ru.dkolmogortsev.controls.TimeEntryButton;
+import ru.dkolmogortsev.customui.DailyGridContainer;
+import ru.dkolmogortsev.customui.DayGridPane;
 import ru.dkolmogortsev.messages.StartTask;
+import ru.dkolmogortsev.messages.TimeEntryDeleted;
 import ru.dkolmogortsev.task.Task;
 import ru.dkolmogortsev.task.TimeEntry;
 import ru.dkolmogortsev.task.storage.TaskStorage;
@@ -47,9 +48,7 @@ public class TaskPanelView extends AbstractGriffonView
     @Inject
     private TimeEntriesStorage entriesStorage;
 
-    private GridPane pane;
-
-    private FlowPane entriesPane;
+    private DailyGridContainer entriesPane;
 
     @Override
     public void initUI()
@@ -59,42 +58,37 @@ public class TaskPanelView extends AbstractGriffonView
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         scrollPane.prefHeight(400);
-        pane = new GridPane();
-        pane.setGridLinesVisible(true);
-        pane.prefWidthProperty().bind(scrollPane.widthProperty());
-        //pane.prefHeightProperty().bind(scrollPane.heightProperty());
-        ColumnConstraints c = new ColumnConstraints();
-        c.setPercentWidth(100.0);
-        pane.getColumnConstraints().addAll(c);
-        pane.addRow(0, new Label("Today"));
-
-        entriesPane = new FlowPane();
-        entriesPane.prefWidthProperty().bind(pane.widthProperty());
-        pane.addRow(1, entriesPane);
-        scrollPane.setContent(pane);
+        scrollPane.prefWidthProperty().bind(parentView.getAnchorPane().widthProperty());
+        entriesPane = new DailyGridContainer();
+        entriesPane.prefWidthProperty().bind(scrollPane.widthProperty());
+        scrollPane.setContent(entriesPane);
         parentView.getAnchorPane().addRow(1, scrollPane);
 
-        EventStreams.changesOf(model.groupedTimeEntriesProperty()).subscribe(mapChange -> {
-            System.out.println(mapChange);
-        });
+        EventStreams.changesOf(model.getMap()).subscribe(change ->
+        {
+            String date = change.getKey();
+            List<TimeEntry> list = change.getMap().get(date);
+            int gridIndex = entriesPane.getGridIndex(date);
+            if (gridIndex != -1)
+            {
+                entriesPane.getChildren().set(gridIndex, buildDayGrid(date, list));
+            }
+            else
+            {
+                entriesPane.getChildren().add(0, buildDayGrid(date, list));
+            }
 
-        EventStreams.changesOf(model.newTimeEntryProperty()).subscribe(timeEntryChange -> {
-            TimeEntry newValue = timeEntryChange.getNewValue();
-            buildTimeEntryLine(newValue);
-            entriesStorage.getEntriesGroupedByDay();
         });
-
     }
 
-    private void buildTimeEntryLine(TimeEntry newValue)
+    private void buildTimeEntryLine(TimeEntry timeEntry, FlowPane holderPane)
     {
         GridPane header = (GridPane)parentView.getPane().getChildren().get(0);//Always header
         GridPane entry = new GridPane();
         entry.getColumnConstraints().addAll(TimeEntryUiHelper.getConstraints());
-        entry.prefHeight(100);
-        Task t = storage.getTask(newValue.getTaskId());
+        Task t = storage.getTask(timeEntry.getTaskId());
 
-        entry.prefWidthProperty().bind(pane.widthProperty());
+        entry.prefWidthProperty().bind(holderPane.widthProperty());
         TimeEntryButton timeEntryButton = new TimeEntryButton(t);
         bindHoverIcons(timeEntryButton, "time.entry.start.hover", "time.entry.start.normal");
         timeEntryButton.prefHeightProperty().bind(header.heightProperty().multiply(0.75));
@@ -105,12 +99,14 @@ public class TaskPanelView extends AbstractGriffonView
 
         EventStreams.eventsOf(timeEntryButton, MouseEvent.MOUSE_CLICKED)
                 .subscribe(mouseEvent -> getApplication().getEventRouter().publishEvent(new StartTask(t.getUUID())));
-        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()),
-                new Label(
-                        ElapsedTimeFormatter.formatElapsed(new Duration(newValue.getDuration()).getStandardSeconds())),
-                new Label(TimeEntryUiHelper.formatDate(newValue.getStart())),
-                new Label(TimeEntryUiHelper.formatDate(newValue.getEnd())), timeEntryButton, deleteButton);
-        entriesPane.getChildren().add(0, entry);
+
+        deleteButton.setOnAction(
+                event -> getApplication().getEventRouter().publishEvent(new TimeEntryDeleted(timeEntry.getId())));
+        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(
+                        ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
+                new Label(TimeEntryUiHelper.formatDate(timeEntry.getStart())),
+                new Label(TimeEntryUiHelper.formatDate(timeEntry.getEnd())), timeEntryButton, deleteButton);
+        holderPane.getChildren().add(0, entry);
     }
 
     private void bindHoverIcons(TimeEntryButton timeEntryButton, String hoverIconPath, String normalIconPath)
@@ -122,4 +118,30 @@ public class TaskPanelView extends AbstractGriffonView
         timeEntryButton.graphicProperty()
                 .bind(Bindings.when(timeEntryButton.hoverProperty()).then(hoverIcon).otherwise(noHover));
     }
+
+    private DayGridPane buildDayGrid(String date, List<TimeEntry> entries)
+    {
+        DayGridPane pane = new DayGridPane(date);
+        pane.prefWidthProperty().bind(entriesPane.widthProperty());
+        GridPane dayHeader = new GridPane();
+        dayHeader.prefWidthProperty().bind(pane.widthProperty());
+
+        ColumnConstraints c1 = new ColumnConstraints();
+        c1.setPercentWidth(50);
+
+        ColumnConstraints c2 = new ColumnConstraints();
+        c2.setPercentWidth(50);
+
+        dayHeader.getColumnConstraints().addAll(c1, c2);
+
+        dayHeader.addRow(0, new Label(date), new Label(ElapsedTimeFormatter.formatElapsed(
+                new Duration(entries.stream().mapToLong(TimeEntry::getDuration).sum()).getStandardSeconds())));
+        pane.addRow(0, dayHeader);
+        FlowPane e = new FlowPane();
+        e.prefWidthProperty().bind(entriesPane.widthProperty());
+        entries.forEach(timeEntry -> buildTimeEntryLine(timeEntry, e));
+        pane.addRow(1, e);
+        return pane;
+    }
+
 }

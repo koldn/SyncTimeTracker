@@ -1,13 +1,13 @@
 package ru.dkolmogortsev;
 
-import javax.inject.Inject;
-
-import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonController;
-
 import griffon.core.artifact.GriffonController;
 import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
+import java.util.List;
+import javax.inject.Inject;
+import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonController;
 import ru.dkolmogortsev.messages.TaskStopped;
+import ru.dkolmogortsev.messages.TimeEntryDeleted;
 import ru.dkolmogortsev.task.TimeEntry;
 import ru.dkolmogortsev.task.storage.TimeEntriesStorage;
 
@@ -28,9 +28,17 @@ public class TaskPanelController extends AbstractGriffonController
     {
         TimeEntry timeEntry = timeEntriesStorage.get(taskStopped.getId());
 
-        model.groupedTimeEntriesProperty().get().compute(timeEntry.getEntryDate(),
-                (s, timeEntries) -> timeEntriesStorage.getByEntryDate(s));
-        model.newTimeEntryProperty().set(timeEntry);
+        model.getMap().compute(timeEntry.getEntryDate(), (s, timeEntries) -> timeEntriesStorage.getByEntryDate(s));
+    }
+
+    public void onTimeEntryDeleted(TimeEntryDeleted deleted)
+    {
+        TimeEntry timeEntry = timeEntriesStorage.delete(deleted.getEntryId());
+        model.getMap().compute(timeEntry.getEntryDate(), (s, timeEntries) ->
+        {
+            List<TimeEntry> es = timeEntriesStorage.getByEntryDate(s);
+            return es;
+        });
     }
 
 }

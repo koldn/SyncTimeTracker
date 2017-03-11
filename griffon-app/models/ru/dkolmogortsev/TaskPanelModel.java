@@ -1,14 +1,12 @@
 package ru.dkolmogortsev;
 
-import java.util.List;
-import java.util.Map;
-
-import javafx.beans.property.SimpleObjectProperty;
-
-import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonModel;
-
 import griffon.core.artifact.GriffonModel;
 import griffon.metadata.ArtifactProviderFor;
+import java.util.List;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonModel;
 import ru.dkolmogortsev.task.TimeEntry;
 
 /**
@@ -20,15 +18,16 @@ public class TaskPanelModel extends AbstractGriffonModel
 
     private SimpleObjectProperty<TimeEntry> newTimeEntry = new SimpleObjectProperty<>();
 
-    private SimpleObjectProperty<Map<String, List<TimeEntry>>> groupedTimeEntries = new SimpleObjectProperty<>();
+    private ObservableMap<String, List<TimeEntry>> entries = FXCollections.observableHashMap();
 
-    public SimpleObjectProperty<Map<String, List<TimeEntry>>> groupedTimeEntriesProperty()
+    public ObservableMap<String, List<TimeEntry>> getMap()
     {
-        return groupedTimeEntries;
+        return entries;
     }
 
     public SimpleObjectProperty<TimeEntry> newTimeEntryProperty()
     {
         return newTimeEntry;
     }
+
 }

@@ -1,5 +1,8 @@
 package ru.dkolmogortsev;
 
+import static ru.dkolmogortsev.utils.TimeEntryUiHelper.getConstraints;
+import static ru.dkolmogortsev.utils.TimeEntryUiHelper.getTimeFromMills;
+
 import griffon.core.artifact.GriffonView;
 import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
@@ -27,7 +30,6 @@ import ru.dkolmogortsev.task.TimeEntry;
 import ru.dkolmogortsev.task.storage.TaskStorage;
 import ru.dkolmogortsev.task.storage.TimeEntriesStorage;
 import ru.dkolmogortsev.utils.ElapsedTimeFormatter;
-import ru.dkolmogortsev.utils.TimeEntryUiHelper;
 
 /**
  * Created by dkolmogortsev on 2/7/17.
@@ -54,15 +56,14 @@ public class TaskPanelView extends AbstractGriffonView
     public void initUI()
     {
         ScrollPane scrollPane = new ScrollPane();
-        scrollPane.fitToWidthProperty();
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         scrollPane.prefHeight(400);
-        scrollPane.prefWidthProperty().bind(parentView.getAnchorPane().widthProperty());
+        scrollPane.prefWidthProperty().bind(parentView.getContainerPane().widthProperty());
         entriesPane = new DailyGridContainer();
         entriesPane.prefWidthProperty().bind(scrollPane.widthProperty());
         scrollPane.setContent(entriesPane);
-        parentView.getAnchorPane().addRow(1, scrollPane);
+        parentView.getContainerPane().addRow(1, scrollPane);
 
         EventStreams.changesOf(model.getMap()).subscribe(change ->
         {
@@ -77,7 +78,6 @@ public class TaskPanelView extends AbstractGriffonView
             {
                 entriesPane.getChildren().add(0, buildDayGrid(date, list));
             }
-
         });
     }
 
@@ -85,10 +85,10 @@ public class TaskPanelView extends AbstractGriffonView
     {
         GridPane header = (GridPane)parentView.getPane().getChildren().get(0);//Always header
         GridPane entry = new GridPane();
-        entry.getColumnConstraints().addAll(TimeEntryUiHelper.getConstraints());
+        entry.getColumnConstraints().addAll(getConstraints());
         Task t = storage.getTask(timeEntry.getTaskId());
 
-        entry.prefWidthProperty().bind(holderPane.widthProperty());
+        entry.prefWidthProperty().bind(parentView.getPane().widthProperty());
         TimeEntryButton timeEntryButton = new TimeEntryButton(t);
         bindHoverIcons(timeEntryButton, "time.entry.start.hover", "time.entry.start.normal");
         timeEntryButton.prefHeightProperty().bind(header.heightProperty().multiply(0.75));
@@ -102,10 +102,12 @@ public class TaskPanelView extends AbstractGriffonView
 
         deleteButton.setOnAction(
                 event -> getApplication().getEventRouter().publishEvent(new TimeEntryDeleted(timeEntry.getId())));
+
+        String startStopLabel = new StringBuilder().append(getTimeFromMills(timeEntry.getStart())).append(" -> ")
+                .append(getTimeFromMills(timeEntry.getEnd())).toString();
         entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(
                         ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
-                new Label(TimeEntryUiHelper.formatDate(timeEntry.getStart())),
-                new Label(TimeEntryUiHelper.formatDate(timeEntry.getEnd())), timeEntryButton, deleteButton);
+                new Label(startStopLabel), timeEntryButton, deleteButton);
         holderPane.getChildren().add(0, entry);
     }
 
@@ -122,9 +124,9 @@ public class TaskPanelView extends AbstractGriffonView
     private DayGridPane buildDayGrid(String date, List<TimeEntry> entries)
     {
         DayGridPane pane = new DayGridPane(date);
-        pane.prefWidthProperty().bind(entriesPane.widthProperty());
+        pane.prefWidthProperty().bind(parentView.getPane().widthProperty());
         GridPane dayHeader = new GridPane();
-        dayHeader.prefWidthProperty().bind(pane.widthProperty());
+        dayHeader.prefWidthProperty().bind(parentView.getPane().widthProperty());
 
         ColumnConstraints c1 = new ColumnConstraints();
         c1.setPercentWidth(50);
@@ -138,7 +140,7 @@ public class TaskPanelView extends AbstractGriffonView
                 new Duration(entries.stream().mapToLong(TimeEntry::getDuration).sum()).getStandardSeconds())));
         pane.addRow(0, dayHeader);
         FlowPane e = new FlowPane();
-        e.prefWidthProperty().bind(entriesPane.widthProperty());
+        //        e.prefWidthProperty().bind(entriesPane.widthProperty());
         entries.forEach(timeEntry -> buildTimeEntryLine(timeEntry, e));
         pane.addRow(1, e);
         return pane;

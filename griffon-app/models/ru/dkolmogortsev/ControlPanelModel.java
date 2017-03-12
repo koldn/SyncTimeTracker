@@ -19,21 +19,14 @@ import ru.dkolmogortsev.utils.ElapsedTimeFormatter;
 public class ControlPanelModel extends AbstractGriffonModel
 {
     private SimpleIntegerProperty elapsedProperty = new SimpleIntegerProperty(0);
-
-    public SimpleStringProperty currentTimeEntryIdProperty()
-    {
-        return currentTimeEntryId;
-    }
-
     private SimpleStringProperty currentTimeEntryId = new SimpleStringProperty();
     private SimpleBooleanProperty taskStarted = new SimpleBooleanProperty(false);
     private SimpleStringProperty timerTextProp = new SimpleStringProperty(
             ElapsedTimeFormatter.formatElapsed(elapsedProperty.get()));
-    private SimpleStringProperty taskNameProperty = new SimpleStringProperty("Description");
-    private SimpleStringProperty taskDescriptionProperty = new SimpleStringProperty("Name");
+    private SimpleStringProperty taskNameProperty = new SimpleStringProperty("Name");
+    private SimpleStringProperty taskDescriptionProperty = new SimpleStringProperty("Description");
     private ListProperty<String> tasks = new SimpleListProperty<>();
     private Timer timer;
-
     public ControlPanelModel()
     {
         elapsedProperty.addListener((observable, oldValue, newValue) ->
@@ -41,6 +34,11 @@ public class ControlPanelModel extends AbstractGriffonModel
             System.out.println("changed");
             timerTextProp.set(ElapsedTimeFormatter.formatElapsed(newValue.intValue()));
         });
+    }
+
+    public SimpleStringProperty currentTimeEntryIdProperty()
+    {
+        return currentTimeEntryId;
     }
 
     public int getElapsedProperty()

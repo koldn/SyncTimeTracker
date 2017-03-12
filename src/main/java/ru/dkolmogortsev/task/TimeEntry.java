@@ -1,8 +1,8 @@
 package ru.dkolmogortsev.task;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
@@ -12,11 +12,13 @@ import org.hibernate.search.annotations.Store;
  * Created by dkolmogortsev on 2/25/17.
  */
 @Indexed
-public class TimeEntry implements Comparable<TimeEntry>
+public class TimeEntry implements Comparable<TimeEntry>, Serializable
 {
     private long start;
     private long end;
     private long duration;
+
+    private String testString = "sadasd";
 
     @Field(store = Store.YES, analyze = Analyze.NO, indexNullAs = Field.DEFAULT_NULL_TOKEN)
     private String entryDate;

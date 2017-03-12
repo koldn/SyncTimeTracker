@@ -4,6 +4,9 @@ import griffon.core.artifact.GriffonController;
 import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
 import java.util.List;
+import java.util.Map;
+import javafx.collections.ObservableMap;
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonController;
 import ru.dkolmogortsev.messages.TaskStopped;
@@ -38,6 +41,24 @@ public class TaskPanelController extends AbstractGriffonController
         {
             List<TimeEntry> es = timeEntriesStorage.getByEntryDate(s);
             return es;
+        });
+    }
+
+    @Override
+    public void mvcGroupInit(
+            @Nonnull
+                    Map<String, Object> args)
+    {
+        super.mvcGroupInit(args);
+        initData();
+    }
+
+    public void initData()
+    {
+        ObservableMap<String, List<TimeEntry>> modelMap = model.getMap();
+        timeEntriesStorage.getEntriesGroupedByDay().entrySet().stream().forEachOrdered(stringListEntry ->
+        {
+            modelMap.put(stringListEntry.getKey(), stringListEntry.getValue());
         });
     }
 

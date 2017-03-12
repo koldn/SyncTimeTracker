@@ -45,7 +45,7 @@ public class ControlPanelController extends AbstractGriffonController
         {
             String description = model.taskDescriptionProperty().get();
             String nameUI = model.taskNameProperty().get();
-            Task saved = storage.save(new Task(description, Task.NO_PROJECT));
+            Task saved = storage.save(new Task(description, nameUI));
             TimeEntry te = new TimeEntry(System.currentTimeMillis(), saved);
             entriesStorage.save(te);
             model.currentTimeEntryIdProperty().set(te.getId());
@@ -56,6 +56,7 @@ public class ControlPanelController extends AbstractGriffonController
             stopBackgroundBackup();
             TimeEntry te = entriesStorage.get(model.currentTimeEntryIdProperty().get());
             te.stop();
+            entriesStorage.save(te);
             getApplication().getEventRouter().publishEvent(new TaskStopped(te.getId()));
             model.stopTimer();
         }
@@ -91,5 +92,4 @@ public class ControlPanelController extends AbstractGriffonController
         model.taskNameProperty().set(taskFromStorage.getTaskName());
         start();
     }
-
 }

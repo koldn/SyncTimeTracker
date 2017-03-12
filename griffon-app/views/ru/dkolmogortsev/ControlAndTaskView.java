@@ -57,7 +57,7 @@ public class ControlAndTaskView extends AbstractJavaFXGriffonView
         getApplication().getWindowManager().attach("main", stage);
     }
 
-    public GridPane getAnchorPane()
+    public GridPane getContainerPane()
     {
         return pane;
     }

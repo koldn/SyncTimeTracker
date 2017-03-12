@@ -51,7 +51,7 @@ public class TimeEntriesStorage
                 .orderBy("start", SortOrder.ASC).build().list();
     }
 
-    public Map<String, List<Object>> getEntriesGroupedByDay()
+    public Map<String, List<TimeEntry>> getEntriesGroupedByDay()
     {
         List<Object[]> resultSet = factory.from(TimeEntry.class).select(Expression.property("entryDate"))
                 .groupBy("entryDate").build().list();

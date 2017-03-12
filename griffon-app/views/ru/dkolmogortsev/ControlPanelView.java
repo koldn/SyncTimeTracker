@@ -60,7 +60,7 @@ public class ControlPanelView extends AbstractJavaFXGriffonView
         taskName.textProperty().bindBidirectional(model.taskNameProperty());
 
         toStartButton();
-        parentView.getAnchorPane().addRow(0, node);
+        parentView.getContainerPane().addRow(0, node);
         started.addListener(((observable, oldValue, newValue) ->
         {
             if (newValue)

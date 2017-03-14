@@ -8,7 +8,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.infinispan.Cache;
 import org.infinispan.query.Search;
-import org.infinispan.query.dsl.Expression;
 import org.infinispan.query.dsl.QueryFactory;
 import org.infinispan.query.dsl.SortOrder;
 import ru.dkolmogortsev.task.TimeEntry;
@@ -45,19 +44,19 @@ public class TimeEntriesStorage
         return infStorage.remove(timeEntryId);
     }
 
-    public List<TimeEntry> getByEntryDate(String entryDate)
+    public List<TimeEntry> getByEntryDate(long entryDate)
     {
-        return factory.from(TimeEntry.class).having("entryDate").eq(entryDate).toBuilder()
-                .orderBy("start", SortOrder.ASC).build().list();
+        return factory.from(TimeEntry.class).having("entryDate").eq(entryDate).orderBy("entryDate", SortOrder.ASC)
+                .build().list();
     }
 
-    public Map<String, List<TimeEntry>> getEntriesGroupedByDay()
+    public Map<Long, List<TimeEntry>> getEntriesGroupedByDay()
     {
-        List<Object[]> resultSet = factory.from(TimeEntry.class).select(Expression.property("entryDate"))
-                .groupBy("entryDate").build().list();
-        return resultSet.stream().map(objects -> objects[0].toString()).collect(Collectors.toMap(Function.identity(),
-                s -> factory.from(TimeEntry.class).having("entryDate").eq(s).toBuilder()
-                        .orderBy("entryDate", SortOrder.DESC).build().list()));
+        List<Object[]> resultSet = factory.from(TimeEntry.class).select("entryDate").groupBy("entryDate")
+                .orderBy("entryDate", SortOrder.DESC).build().list();
+        return resultSet.stream().map(longs -> (long)longs[0]).collect(Collectors.toMap(Function.identity(),
+                s -> factory.from(TimeEntry.class).having("entryDate").eq(s).orderBy("entryDate", SortOrder.DESC)
+                        .build().list()));
 
     }
 }

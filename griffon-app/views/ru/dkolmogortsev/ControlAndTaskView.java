@@ -40,6 +40,7 @@ public class ControlAndTaskView extends AbstractJavaFXGriffonView
     {
         Stage stage = (Stage)getApplication().createApplicationContainer(Collections.emptyMap());
         pane = new GridPane();
+        pane.setVgap(10);
         ColumnConstraints constr = new ColumnConstraints();
         constr.setPercentWidth(100.0);
         pane.getColumnConstraints().add(constr);
@@ -51,6 +52,7 @@ public class ControlAndTaskView extends AbstractJavaFXGriffonView
         Scene scene = new Scene(pane);
         scene.getStylesheets().add("bootstrapfx.css");
         scene.getStylesheets().add("/ru/dkolmogortsev/controlpanel.css");
+        scene.getStylesheets().add("/ru/dkolmogortsev/daygrid");
         stage.setScene(scene);
         stage.setTitle(getApplication().getConfiguration().getAsString("application.title"));
         stage.setHeight(400.0);

@@ -10,14 +10,10 @@
 <GridPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="400.0" prefWidth="699.9998779296875"
   xmlns="http://javafx.com/javafx/8" fx:controller="ru.dkolmogortsev.ControlAndTaskView" fx:id="projectTitle">
     <children>
-      <Button GridPane.columnIndex="0" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="0" GridPane.vgrow="SOMETIMES"
-        cancelButton="false" contentDisplay="GRAPHIC_ONLY" defaultButton="false" maxHeight="1.7976931348623157E308"
-        maxWidth="1.7976931348623157E308" mnemonicParsing="false" scaleX="1.0" text="Button" textOverrun="CLIP"
-        fx:id="config"/>
-      <TextField GridPane.columnIndex="2" GridPane.rowIndex="0" maxHeight="1.7976931348623157E308"
-        maxWidth="1.7976931348623157E308" prefWidth="200.0" fx:id="taskName"/>
       <TextField GridPane.columnIndex="1" GridPane.rowIndex="0" maxHeight="1.7976931348623157E308"
         maxWidth="1.7976931348623157E308" prefWidth="200.0" fx:id="taskDescription"/>
+      <TextField GridPane.columnIndex="2" GridPane.rowIndex="0" maxHeight="1.7976931348623157E308"
+        maxWidth="1.7976931348623157E308" prefWidth="200.0" fx:id="taskName"/>
 
       <Label GridPane.columnIndex="3" GridPane.rowIndex="0" alignment="CENTER" contentDisplay="RIGHT"
         maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="00:00" textAlignment="RIGHT"
@@ -25,6 +21,10 @@
       <Button GridPane.columnIndex="4" GridPane.rowIndex="0" JavaFXUtils.griffonActionId="start"
         maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Button"
         fx:id="startButton"/>
+      <Button GridPane.columnIndex="0" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="0" GridPane.vgrow="SOMETIMES"
+        cancelButton="false" contentDisplay="GRAPHIC_ONLY" defaultButton="false" maxHeight="1.7976931348623157E308"
+        maxWidth="1.7976931348623157E308" mnemonicParsing="false" scaleX="1.0" text="Button" textOverrun="CLIP"
+        fx:id="config"/>
     </children>
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="364.0" minWidth="10.0" percentWidth="10.0" />

@@ -8,6 +8,8 @@ import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
 import java.util.List;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -19,6 +21,7 @@ import javafx.scene.layout.GridPane;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
 import org.joda.time.Duration;
+import org.joda.time.LocalDate;
 import org.reactfx.EventStreams;
 import ru.dkolmogortsev.controls.TimeEntryButton;
 import ru.dkolmogortsev.customui.DailyGridContainer;
@@ -37,6 +40,7 @@ import ru.dkolmogortsev.utils.ElapsedTimeFormatter;
 @ArtifactProviderFor(GriffonView.class)
 public class TaskPanelView extends AbstractGriffonView
 {
+    private static final String pattern = "dd/MM/yyyy"; //TODO make it configurable
 
     @MVCMember
     private ControlAndTaskView parentView;
@@ -67,7 +71,7 @@ public class TaskPanelView extends AbstractGriffonView
 
         EventStreams.changesOf(model.getMap()).subscribe(change ->
         {
-            String date = change.getKey();
+            long date = change.getKey();
             List<TimeEntry> list = change.getMap().get(date);
             int gridIndex = entriesPane.getGridIndex(date);
             if (gridIndex != -1)
@@ -121,12 +125,13 @@ public class TaskPanelView extends AbstractGriffonView
                 .bind(Bindings.when(timeEntryButton.hoverProperty()).then(hoverIcon).otherwise(noHover));
     }
 
-    private DayGridPane buildDayGrid(String date, List<TimeEntry> entries)
+    private DayGridPane buildDayGrid(long date, List<TimeEntry> entries)
     {
         DayGridPane pane = new DayGridPane(date);
         pane.prefWidthProperty().bind(parentView.getPane().widthProperty());
         GridPane dayHeader = new GridPane();
         dayHeader.prefWidthProperty().bind(parentView.getPane().widthProperty());
+        ReadOnlyDoubleProperty headerHeight = ((GridPane)parentView.getPane().getChildren().get(0)).heightProperty();
 
         ColumnConstraints c1 = new ColumnConstraints();
         c1.setPercentWidth(50);
@@ -136,11 +141,21 @@ public class TaskPanelView extends AbstractGriffonView
 
         dayHeader.getColumnConstraints().addAll(c1, c2);
 
-        dayHeader.addRow(0, new Label(date), new Label(ElapsedTimeFormatter.formatElapsed(
-                new Duration(entries.stream().mapToLong(TimeEntry::getDuration).sum()).getStandardSeconds())));
+        LocalDate localDate = new LocalDate(date);
+        boolean isToday = localDate.equals(LocalDate.now());
+        Label currentDayLabel = new Label(isToday ? "Today" : localDate.toString(pattern));
+        currentDayLabel.setAlignment(Pos.CENTER_LEFT);
+        currentDayLabel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        currentDayLabel.getStyleClass().addAll("lbl-info", "daygrid-lbl");
+        currentDayLabel.prefHeightProperty().bind(headerHeight.multiply(0.60));
+        Label dayDuration = new Label(ElapsedTimeFormatter.formatElapsed(
+                new Duration(entries.stream().mapToLong(TimeEntry::getDuration).sum()).getStandardSeconds()));
+        dayDuration.setAlignment(Pos.CENTER_RIGHT);
+        dayDuration.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        dayDuration.getStyleClass().addAll("lbl-info", "daygrid-lbl");
+        dayHeader.addRow(0, currentDayLabel, dayDuration);
         pane.addRow(0, dayHeader);
         FlowPane e = new FlowPane();
-        //        e.prefWidthProperty().bind(entriesPane.widthProperty());
         entries.forEach(timeEntry -> buildTimeEntryLine(timeEntry, e));
         pane.addRow(1, e);
         return pane;

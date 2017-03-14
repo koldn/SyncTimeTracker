@@ -33,7 +33,7 @@ griffon {
         'build.revision': versioning.info.commit
     ]
 }
-def infinispanVersion = '8.2.5.Final'
+def infinispanVersion = '9.0.0.CR3'
 
 mainClassName = 'ru.dkolmogortsev.Launcher'
 

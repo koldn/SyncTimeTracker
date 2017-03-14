@@ -7,14 +7,14 @@ import javafx.scene.layout.GridPane;
  */
 public class DayGridPane extends GridPane
 {
-    private String date;
+    private long date;
 
-    public DayGridPane(String date)
+    public DayGridPane(long date)
     {
         this.date = date;
     }
 
-    public String getDate()
+    public long getDate()
     {
         return date;
     }

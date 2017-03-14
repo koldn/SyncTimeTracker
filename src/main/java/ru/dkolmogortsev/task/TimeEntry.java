@@ -1,12 +1,8 @@
 package ru.dkolmogortsev.task;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
+import org.joda.time.LocalDate;
 
 /**
  * Created by dkolmogortsev on 2/25/17.
@@ -14,24 +10,24 @@ import org.hibernate.search.annotations.Store;
 @Indexed
 public class TimeEntry implements Comparable<TimeEntry>, Serializable
 {
+
     private long start;
+
+    private long entryDate;
     private long end;
     private long duration;
 
-    private String testString = "sadasd";
 
-    @Field(store = Store.YES, analyze = Analyze.NO, indexNullAs = Field.DEFAULT_NULL_TOKEN)
-    private String entryDate;
     private String taskId;
 
     public TimeEntry(long start, Task task)
     {
         this.start = start;
-        this.entryDate = new SimpleDateFormat("yyyy/MM/dd").format(new Date(this.start));
+        this.entryDate = new LocalDate(start).toDate().getTime();
         this.taskId = task.getUUID();
     }
 
-    public String getEntryDate()
+    public long getEntryDate()
     {
         return entryDate;
     }

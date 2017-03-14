@@ -31,7 +31,6 @@ public class ControlPanelModel extends AbstractGriffonModel
     {
         elapsedProperty.addListener((observable, oldValue, newValue) ->
         {
-            System.out.println("changed");
             timerTextProp.set(ElapsedTimeFormatter.formatElapsed(newValue.intValue()));
         });
     }

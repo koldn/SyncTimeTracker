@@ -59,6 +59,8 @@ public class ControlPanelView extends AbstractJavaFXGriffonView
         taskDescription.textProperty().bindBidirectional(model.taskDescriptionProperty());
         taskName.textProperty().bindBidirectional(model.taskNameProperty());
 
+        startButton.getStyleClass().clear();
+
         toStartButton();
         parentView.getContainerPane().addRow(0, node);
         started.addListener(((observable, oldValue, newValue) ->
@@ -121,11 +123,13 @@ public class ControlPanelView extends AbstractJavaFXGriffonView
     private void toStartButton()
     {
         startButton.getStyleClass().setAll("btn", "btn-success");
+        startButton.setText("Start");
     }
 
     private void toStopButton()
     {
         startButton.getStyleClass().setAll("btn", "btn-danger");
+        startButton.setText("Stop");
     }
 
     private void onFocus(TextField focusedField)

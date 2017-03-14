@@ -7,12 +7,17 @@ import javafx.scene.layout.FlowPane;
  */
 public class DailyGridContainer extends FlowPane
 {
-    public int getGridIndex(String date)
+    public DailyGridContainer()
+    {
+        setVgap(10);
+    }
+
+    public int getGridIndex(long date)
     {
         for (int i = 0; i < getChildren().size(); i++)
         {
             DayGridPane dayGrid = (DayGridPane)getChildren().get(i);
-            if (dayGrid.getDate().equalsIgnoreCase(date))
+            if (dayGrid.getDate() == date)
             {
                 return i;
             }

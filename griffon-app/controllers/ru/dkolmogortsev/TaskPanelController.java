@@ -1,5 +1,6 @@
 package ru.dkolmogortsev;
 
+import com.google.common.collect.Lists;
 import griffon.core.artifact.GriffonController;
 import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
@@ -9,6 +10,7 @@ import javafx.collections.ObservableMap;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonController;
+import org.joda.time.LocalDate;
 import ru.dkolmogortsev.messages.TaskStopped;
 import ru.dkolmogortsev.messages.TimeEntryDeleted;
 import ru.dkolmogortsev.task.TimeEntry;
@@ -55,11 +57,15 @@ public class TaskPanelController extends AbstractGriffonController
 
     public void initData()
     {
-        ObservableMap<String, List<TimeEntry>> modelMap = model.getMap();
+        ObservableMap<Long, List<TimeEntry>> modelMap = model.getMap();
         timeEntriesStorage.getEntriesGroupedByDay().entrySet().stream().forEachOrdered(stringListEntry ->
         {
             modelMap.put(stringListEntry.getKey(), stringListEntry.getValue());
         });
+        if (modelMap.isEmpty())
+        {
+            modelMap.put(LocalDate.now().toDate().getTime(), Lists.newArrayList());
+        }
     }
 
 }

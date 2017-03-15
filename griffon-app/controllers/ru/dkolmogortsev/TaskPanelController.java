@@ -58,10 +58,8 @@ public class TaskPanelController extends AbstractGriffonController
     public void initData()
     {
         ObservableMap<Long, List<TimeEntry>> modelMap = model.getMap();
-        timeEntriesStorage.getEntriesGroupedByDay().entrySet().stream().forEachOrdered(stringListEntry ->
-        {
-            modelMap.put(stringListEntry.getKey(), stringListEntry.getValue());
-        });
+        timeEntriesStorage.getEntriesGroupedByDay().entrySet().stream()
+                .forEach(stringListEntry -> modelMap.put(stringListEntry.getKey(), stringListEntry.getValue()));
         if (modelMap.isEmpty())
         {
             modelMap.put(LocalDate.now().toDate().getTime(), Lists.newArrayList());

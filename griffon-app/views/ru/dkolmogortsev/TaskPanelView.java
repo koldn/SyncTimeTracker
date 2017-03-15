@@ -7,6 +7,8 @@ import griffon.core.artifact.GriffonView;
 import griffon.inject.MVCMember;
 import griffon.metadata.ArtifactProviderFor;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Pos;
@@ -15,9 +17,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
 import org.joda.time.Duration;
@@ -89,6 +94,8 @@ public class TaskPanelView extends AbstractGriffonView
     {
         GridPane header = (GridPane)parentView.getPane().getChildren().get(0);//Always header
         GridPane entry = new GridPane();
+
+        entry.focusTraversableProperty().set(true);
         entry.getColumnConstraints().addAll(getConstraints());
         Task t = storage.getTask(timeEntry.getTaskId());
 
@@ -112,6 +119,14 @@ public class TaskPanelView extends AbstractGriffonView
         entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(
                         ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
                 new Label(startStopLabel), timeEntryButton, deleteButton);
+
+        entry.backgroundProperty().bind(Bindings.when(entry.hoverProperty())
+                .then(new Background(new BackgroundFill(Color.web("#fcf0b3"), null, null)))
+                .otherwise(new Background(new BackgroundFill(Color.TRANSPARENT, null, null))));
+
+        deleteButton.visibleProperty().bind(Bindings.when(entry.hoverProperty()).then(true).otherwise(false));
+        timeEntryButton.visibleProperty().bind(Bindings.when(entry.hoverProperty()).then(true).otherwise(false));
+
         holderPane.getChildren().add(0, entry);
     }
 
@@ -156,6 +171,9 @@ public class TaskPanelView extends AbstractGriffonView
         dayHeader.addRow(0, currentDayLabel, dayDuration);
         pane.addRow(0, dayHeader);
         FlowPane e = new FlowPane();
+
+        Map<String, List<TimeEntry>> dups = entries.stream()
+                .collect(Collectors.groupingBy(o -> o.getTaskId(), Collectors.toList()));
         entries.forEach(timeEntry -> buildTimeEntryLine(timeEntry, e));
         pane.addRow(1, e);
         return pane;

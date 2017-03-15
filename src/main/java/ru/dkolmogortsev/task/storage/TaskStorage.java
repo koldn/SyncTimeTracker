@@ -1,17 +1,12 @@
 package ru.dkolmogortsev.task.storage;
 
 import griffon.core.event.EventHandler;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.infinispan.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.dkolmogortsev.messages.TaskCreated;
 import ru.dkolmogortsev.task.Task;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import java.util.List;
 
 /**
  * Created by dkolmogortsev on 2/11/17.
@@ -28,9 +23,6 @@ public class TaskStorage implements EventHandler {
         cache = manager.taskStorage();
     }
 
-    public List<Task> getAll() {
-        return null;
-    }
 
     public Task save(Task task) {
         cache.put(task.getUUID(), task);

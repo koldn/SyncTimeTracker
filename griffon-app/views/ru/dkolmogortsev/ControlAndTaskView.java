@@ -54,6 +54,9 @@ public class ControlAndTaskView extends AbstractJavaFXGriffonView
         scene.getStylesheets().add("/ru/dkolmogortsev/controlpanel.css");
         scene.getStylesheets().add("/ru/dkolmogortsev/daygrid");
         stage.setScene(scene);
+
+        scene.setOnKeyPressed(event -> System.out.println(event));
+
         stage.setTitle(getApplication().getConfiguration().getAsString("application.title"));
         stage.setHeight(400.0);
         getApplication().getWindowManager().attach("main", stage);

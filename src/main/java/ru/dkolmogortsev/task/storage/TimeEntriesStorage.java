@@ -46,17 +46,17 @@ public class TimeEntriesStorage
 
     public List<TimeEntry> getByEntryDate(long entryDate)
     {
-        return factory.from(TimeEntry.class).having("entryDate").eq(entryDate).orderBy("entryDate", SortOrder.ASC)
-                .build().list();
+        List<TimeEntry> entries = factory.from(TimeEntry.class).having("entryDate").eq(entryDate)
+                .orderBy("start", SortOrder.ASC).build().list();
+        return entries;
     }
 
     public Map<Long, List<TimeEntry>> getEntriesGroupedByDay()
     {
         List<Object[]> resultSet = factory.from(TimeEntry.class).select("entryDate").groupBy("entryDate")
                 .orderBy("entryDate", SortOrder.DESC).build().list();
-        return resultSet.stream().map(longs -> (long)longs[0]).collect(Collectors.toMap(Function.identity(),
-                s -> factory.from(TimeEntry.class).having("entryDate").eq(s).orderBy("entryDate", SortOrder.DESC)
-                        .build().list()));
+        return resultSet.stream().map(longs -> (long)longs[0])
+                .collect(Collectors.toMap(Function.identity(), this::getByEntryDate));
 
     }
 }

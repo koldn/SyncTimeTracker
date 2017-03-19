@@ -7,11 +7,13 @@ import griffon.core.event.Event;
  */
 public class TaskStopped extends Event
 {
-    public TaskStopped(String timeEntryId){
+    public TaskStopped(long timeEntryId)
+    {
         super(timeEntryId);
     }
 
-    public String getId(){
-        return (String)super.getSource();
+    public long getId()
+    {
+        return (long)super.getSource();
     }
 }

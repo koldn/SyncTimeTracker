@@ -8,13 +8,13 @@ import griffon.core.event.Event;
 public class TimeEntryDeleted extends Event
 {
 
-    public TimeEntryDeleted(String entryId)
+    public TimeEntryDeleted(long entryId)
     {
         super(entryId);
     }
 
-    public String getEntryId()
+    public long getEntryId()
     {
-        return (String)getSource();
+        return (long)getSource();
     }
 }

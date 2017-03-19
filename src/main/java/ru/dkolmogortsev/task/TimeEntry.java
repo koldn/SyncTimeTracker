@@ -17,14 +17,13 @@ public class TimeEntry implements Comparable<TimeEntry>, Serializable
     private long end;
     private long duration;
 
+    private long taskId;
 
-    private String taskId;
-
-    public TimeEntry(long start, Task task)
+    public TimeEntry(long start, long taskId)
     {
         this.start = start;
         this.entryDate = new LocalDate(start).toDate().getTime();
-        this.taskId = task.getUUID();
+        this.taskId = taskId;
     }
 
     public long getEntryDate()
@@ -32,7 +31,7 @@ public class TimeEntry implements Comparable<TimeEntry>, Serializable
         return entryDate;
     }
 
-    public String getTaskId()
+    public long getTaskId()
     {
         return taskId;
     }
@@ -63,7 +62,7 @@ public class TimeEntry implements Comparable<TimeEntry>, Serializable
         this.duration = end - start;
     }
 
-    public String getId()
+    public long getId()
     {
         return taskId + start;
     }

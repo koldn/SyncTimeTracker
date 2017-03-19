@@ -15,6 +15,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
@@ -23,6 +24,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
 import org.joda.time.Duration;
@@ -90,44 +92,51 @@ public class TaskPanelView extends AbstractGriffonView
         });
     }
 
-    private void buildTimeEntryLine(TimeEntry timeEntry, FlowPane holderPane)
+    private GridPane buildTimeEntryLine(Task t, TimeEntry timeEntry)
     {
         GridPane header = (GridPane)parentView.getPane().getChildren().get(0);//Always header
         GridPane entry = new GridPane();
 
         entry.focusTraversableProperty().set(true);
         entry.getColumnConstraints().addAll(getConstraints());
-        Task t = storage.getTask(timeEntry.getTaskId());
 
         entry.prefWidthProperty().bind(parentView.getPane().widthProperty());
-        TimeEntryButton timeEntryButton = new TimeEntryButton(t);
-        bindHoverIcons(timeEntryButton, "time.entry.start.hover", "time.entry.start.normal");
+        TimeEntryButton timeEntryButton = new TimeEntryButton();
+        toStartTaskView(timeEntryButton);
         timeEntryButton.prefHeightProperty().bind(header.heightProperty().multiply(0.75));
 
-        TimeEntryButton deleteButton = new TimeEntryButton(t);
-        bindHoverIcons(deleteButton, "time.entry.delete.hover", "time.entry.delete.normal");
+        TimeEntryButton deleteButton = new TimeEntryButton();
+        toDeleteEntryButton(deleteButton);
         deleteButton.prefHeightProperty().bind(header.heightProperty().multiply(0.75));
 
         EventStreams.eventsOf(timeEntryButton, MouseEvent.MOUSE_CLICKED)
-                .subscribe(mouseEvent -> getApplication().getEventRouter().publishEvent(new StartTask(t.getUUID())));
+                .subscribe(mouseEvent -> publishTaskStarted(t.getId()));
 
-        deleteButton.setOnAction(
-                event -> getApplication().getEventRouter().publishEvent(new TimeEntryDeleted(timeEntry.getId())));
+        deleteButton.setOnAction(event -> publishEntryDeleted(timeEntry));
 
-        String startStopLabel = new StringBuilder().append(getTimeFromMills(timeEntry.getStart())).append(" -> ")
-                .append(getTimeFromMills(timeEntry.getEnd())).toString();
-        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(
-                        ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
-                new Label(startStopLabel), timeEntryButton, deleteButton);
+        String startStopString = new StringBuilder().append(getTimeFromMills(timeEntry.getStart())).append(" -> ").append(getTimeFromMills(timeEntry.getEnd())).toString();
+        Label startStopLabel = new Label(startStopString);
+        startStopLabel.setTextAlignment(TextAlignment.CENTER);
+        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
+                startStopLabel, timeEntryButton, deleteButton);
 
+        initHover(entry, timeEntryButton, deleteButton);
+        return entry;
+    }
+
+    private void toDeleteEntryButton(TimeEntryButton deleteButton)
+    {
+        bindHoverIcons(deleteButton, "time.entry.delete.hover", "time.entry.delete.normal");
+    }
+
+    private void initHover(GridPane entry, TimeEntryButton timeEntryButton, TimeEntryButton deleteButton)
+    {
         entry.backgroundProperty().bind(Bindings.when(entry.hoverProperty())
                 .then(new Background(new BackgroundFill(Color.web("#fcf0b3"), null, null)))
                 .otherwise(new Background(new BackgroundFill(Color.TRANSPARENT, null, null))));
 
         deleteButton.visibleProperty().bind(Bindings.when(entry.hoverProperty()).then(true).otherwise(false));
         timeEntryButton.visibleProperty().bind(Bindings.when(entry.hoverProperty()).then(true).otherwise(false));
-
-        holderPane.getChildren().add(0, entry);
     }
 
     private void bindHoverIcons(TimeEntryButton timeEntryButton, String hoverIconPath, String normalIconPath)
@@ -143,9 +152,8 @@ public class TaskPanelView extends AbstractGriffonView
     private DayGridPane buildDayGrid(long date, List<TimeEntry> entries)
     {
         DayGridPane pane = new DayGridPane(date);
-        pane.prefWidthProperty().bind(parentView.getPane().widthProperty());
+        pane.prefWidthProperty().bind(((GridPane)parentView.getPane().getChildren().get(0)).widthProperty());
         GridPane dayHeader = new GridPane();
-        dayHeader.prefWidthProperty().bind(parentView.getPane().widthProperty());
         ReadOnlyDoubleProperty headerHeight = ((GridPane)parentView.getPane().getChildren().get(0)).heightProperty();
 
         ColumnConstraints c1 = new ColumnConstraints();
@@ -155,7 +163,7 @@ public class TaskPanelView extends AbstractGriffonView
         c2.setPercentWidth(50);
 
         dayHeader.getColumnConstraints().addAll(c1, c2);
-
+        dayHeader.prefWidthProperty().bind(((GridPane)parentView.getPane().getChildren().get(0)).widthProperty());
         LocalDate localDate = new LocalDate(date);
         boolean isToday = localDate.equals(LocalDate.now());
         Label currentDayLabel = new Label(isToday ? "Today" : localDate.toString(pattern));
@@ -172,11 +180,92 @@ public class TaskPanelView extends AbstractGriffonView
         pane.addRow(0, dayHeader);
         FlowPane e = new FlowPane();
 
-        Map<String, List<TimeEntry>> dups = entries.stream()
+        Map<Long, List<TimeEntry>> dups = entries.stream()
                 .collect(Collectors.groupingBy(o -> o.getTaskId(), Collectors.toList()));
-        entries.forEach(timeEntry -> buildTimeEntryLine(timeEntry, e));
+        dups.forEach((aLong, entries1) -> buildEntriesNew(e, aLong, entries1));
         pane.addRow(1, e);
         return pane;
     }
 
+    private void buildEntriesNew(FlowPane parentPane, long taskId, List<TimeEntry> entries)
+    {
+        Task task = storage.getTask(taskId);
+        List<GridPane> uiLines = entries.stream().map(timeEntry -> buildTimeEntryLine(task, timeEntry))
+                .collect(Collectors.toList());
+        if (uiLines.size() == 1)
+        {
+            parentPane.getChildren().add(uiLines.get(0));
+            return;
+        }
+
+        long overAllDuration = entries.stream().mapToLong(TimeEntry::getDuration).sum();
+
+        FlowPane ents = new FlowPane();
+        ents.prefWidthProperty().bind(parentPane.widthProperty());
+        ToggleButton tg = new ToggleButton();
+        tg.setText(String.valueOf(entries.size()));
+        tg.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        tg.getStyleClass().clear();
+
+        EventStreams.changesOf(tg.selectedProperty()).subscribe(booleanChange ->
+        {
+            boolean newVal = booleanChange.getNewValue();
+            if (newVal)
+            {
+                ents.getChildren().addAll(1, uiLines);
+            }
+            else
+            {
+                ents.getChildren().removeAll(uiLines);
+            }
+        });
+
+        GridPane controlPane = (GridPane)parentView.getPane().getChildren().get(0);//Always header
+
+        TimeEntryButton timeEntryButton = new TimeEntryButton();
+        toStartTaskView(timeEntryButton);
+        timeEntryButton.prefHeightProperty().bind(controlPane.heightProperty().multiply(0.75));
+
+        TimeEntryButton deleteButton = new TimeEntryButton();
+        toDeleteEntryButton(deleteButton);
+        deleteButton.prefHeightProperty().bind(controlPane.heightProperty().multiply(0.75));
+
+        EventStreams.eventsOf(deleteButton, MouseEvent.MOUSE_CLICKED)
+                .subscribe(mouseEvent -> entries.forEach(timeEntry ->
+                {
+                    publishEntryDeleted(timeEntry);
+                }));
+
+        EventStreams.eventsOf(timeEntryButton, MouseEvent.MOUSE_CLICKED)
+                .subscribe(mouseEvent -> publishTaskStarted(taskId));
+
+        ReadOnlyDoubleProperty headerHeight = ((GridPane)parentView.getPane().getChildren().get(0)).heightProperty();
+        GridPane groupedEntry = new GridPane();
+        groupedEntry.getColumnConstraints().addAll(getConstraints());
+        groupedEntry.prefWidthProperty().bind(((GridPane)parentView.getPane().getChildren().get(0)).widthProperty());
+        groupedEntry.prefHeightProperty().bind(headerHeight.multiply(0.60));
+        groupedEntry.addRow(0, new Label(task.getDescription()), new Label(task.getTaskName()),
+                new Label(ElapsedTimeFormatter.formatElapsed(new Duration(overAllDuration).getStandardSeconds())), tg,
+                timeEntryButton, deleteButton);
+        ents.getChildren().add(0, groupedEntry);
+
+        initHover(groupedEntry, timeEntryButton, deleteButton);
+
+        parentPane.getChildren().add(ents);
+    }
+
+    private void toStartTaskView(TimeEntryButton timeEntryButton)
+    {
+        bindHoverIcons(timeEntryButton, "time.entry.start.hover", "time.entry.start.normal");
+    }
+
+    private void publishTaskStarted(long taskId)
+    {
+        getApplication().getEventRouter().publishEvent(new StartTask(taskId));
+    }
+
+    private void publishEntryDeleted(TimeEntry timeEntry)
+    {
+        getApplication().getEventRouter().publishEvent(new TimeEntryDeleted(timeEntry.getId()));
+    }
 }

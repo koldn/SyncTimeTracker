@@ -1,5 +1,6 @@
 package ru.dkolmogortsev.task;
 
+import com.google.common.base.Objects;
 import java.io.Serializable;
 import javax.annotation.Nullable;
 import org.hibernate.search.annotations.Analyze;
@@ -14,7 +15,7 @@ import org.hibernate.search.annotations.Store;
 public class Task implements Serializable
 {
     public static final String NO_PROJECT = "Without project";
-    private final String UUID;
+    private final long id;
     @Field(store = Store.YES, analyze = Analyze.NO, indexNullAs = Field.DEFAULT_NULL_TOKEN)
     private String description;
     @Nullable
@@ -24,7 +25,7 @@ public class Task implements Serializable
     public Task(String description, String taskName) {
         this.description = description;
         this.taskName = taskName;
-        this.UUID = java.util.UUID.randomUUID().toString();
+        this.id = Objects.hashCode(taskName, description);
     }
 
     public String getDescription()
@@ -38,9 +39,9 @@ public class Task implements Serializable
         return taskName;
     }
 
-    public String getUUID()
+    public long getId()
     {
-        return UUID;
+        return id;
     }
 
     @Override

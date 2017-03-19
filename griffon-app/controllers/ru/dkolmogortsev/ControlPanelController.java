@@ -45,8 +45,8 @@ public class ControlPanelController extends AbstractGriffonController
         {
             String description = model.taskDescriptionProperty().get();
             String nameUI = model.taskNameProperty().get();
-            Task saved = storage.save(new Task(description, nameUI));
-            TimeEntry te = new TimeEntry(System.currentTimeMillis(), saved);
+            Task task = storage.create(description, nameUI);
+            TimeEntry te = new TimeEntry(System.currentTimeMillis(), task.getId());
             entriesStorage.save(te);
             model.currentTimeEntryIdProperty().set(te.getId());
             initTimeEntryBackup(te);

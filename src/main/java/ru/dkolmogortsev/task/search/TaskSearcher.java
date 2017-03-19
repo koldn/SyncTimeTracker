@@ -1,14 +1,12 @@
 package ru.dkolmogortsev.task.search;
 
-
+import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.infinispan.query.Search;
 import org.infinispan.query.dsl.QueryFactory;
 import ru.dkolmogortsev.task.Task;
 import ru.dkolmogortsev.task.storage.InfinispanCacheManager;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.List;
 
 /**
  * Created by dkolmogortsev on 2/11/17.
@@ -24,7 +22,8 @@ public class TaskSearcher {
     }
 
     public List<Task> search(String searchString, SearchFields field){
-        return queryFactory.from(Task.class).having(field.toString().toLowerCase()).like('%' + searchString.toLowerCase() + '%').toBuilder().build().list();
+        return queryFactory.from(Task.class).having(field.toString().toLowerCase())
+                .like('%' + searchString.toLowerCase() + '%').build().list();
     }
 
 }

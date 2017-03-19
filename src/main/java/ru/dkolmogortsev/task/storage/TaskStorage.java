@@ -16,20 +16,22 @@ public class TaskStorage implements EventHandler {
 
     Logger LOG = LoggerFactory.getLogger(TaskStorage.class);
 
-    private Cache<String,Task> cache;
+    private Cache<Long, Task> cache;
 
     @Inject
     TaskStorage(InfinispanCacheManager manager){
         cache = manager.taskStorage();
     }
 
+    public Task create(String description, String name)
+    {
 
-    public Task save(Task task) {
-        cache.put(task.getUUID(), task);
-        return task;
+        Task newTask = new Task(description, name);
+        return cache.computeIfAbsent(newTask.getId(), integer -> newTask);
     }
 
-    public Task getTask(String taskId) {
+    public Task getTask(long taskId)
+    {
         return cache.get(taskId);
     }
 }

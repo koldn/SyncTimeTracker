@@ -2,6 +2,7 @@ package ru.dkolmogortsev.task.storage;
 
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -18,7 +19,7 @@ import ru.dkolmogortsev.task.TimeEntry;
 @Singleton
 public class TimeEntriesStorage
 {
-    Cache<String, TimeEntry> infStorage;
+    Cache<Long, TimeEntry> infStorage;
 
     private QueryFactory factory;
 
@@ -34,12 +35,12 @@ public class TimeEntriesStorage
         return infStorage.put(entry.getId(), entry);
     }
 
-    public TimeEntry get(String timeEntryId)
+    public TimeEntry get(long timeEntryId)
     {
         return infStorage.get(timeEntryId);
     }
 
-    public TimeEntry delete(String timeEntryId)
+    public TimeEntry delete(long timeEntryId)
     {
         return infStorage.remove(timeEntryId);
     }
@@ -54,9 +55,10 @@ public class TimeEntriesStorage
     public Map<Long, List<TimeEntry>> getEntriesGroupedByDay()
     {
         List<Object[]> resultSet = factory.from(TimeEntry.class).select("entryDate").groupBy("entryDate")
-                .orderBy("entryDate", SortOrder.DESC).build().list();
-        return resultSet.stream().map(longs -> (long)longs[0])
-                .collect(Collectors.toMap(Function.identity(), this::getByEntryDate));
+                .orderBy("entryDate", SortOrder.ASC).build().list();
+        Map<Long, List<TimeEntry>> longListMap = resultSet.stream().map(longs -> (long)longs[0]).collect(Collectors
+                .toMap(Function.identity(), this::getByEntryDate, (entries, entries2) -> entries, TreeMap::new));
+        return longListMap;
 
     }
 }

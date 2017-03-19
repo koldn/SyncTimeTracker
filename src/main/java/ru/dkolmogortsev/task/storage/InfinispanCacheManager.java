@@ -33,12 +33,12 @@ public class InfinispanCacheManager
 
     }
 
-    public Cache<String, Task> taskStorage()
+    public Cache<Long, Task> taskStorage()
     {
         return manager.getCache("tasks");
     }
 
-    public Cache<String, TimeEntry> timeEntryStorage()
+    public Cache<Long, TimeEntry> timeEntryStorage()
     {
         return manager.getCache("timeEntries", true);
     }

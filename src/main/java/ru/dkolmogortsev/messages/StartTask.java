@@ -7,11 +7,13 @@ import griffon.core.event.Event;
  */
 public class StartTask extends Event
 {
-    public StartTask(String taskId){
+    public StartTask(long taskId)
+    {
         super(taskId);
     }
 
-    public String getTaskId(){
-        return (String)getSource();
+    public long getTaskId()
+    {
+        return (long)getSource();
     }
 }

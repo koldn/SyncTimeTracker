@@ -8,6 +8,7 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonModel;
@@ -19,7 +20,7 @@ import ru.dkolmogortsev.utils.ElapsedTimeFormatter;
 public class ControlPanelModel extends AbstractGriffonModel
 {
     private SimpleIntegerProperty elapsedProperty = new SimpleIntegerProperty(0);
-    private SimpleStringProperty currentTimeEntryId = new SimpleStringProperty();
+    private SimpleLongProperty currentTimeEntryId = new SimpleLongProperty();
     private SimpleBooleanProperty taskStarted = new SimpleBooleanProperty(false);
     private SimpleStringProperty timerTextProp = new SimpleStringProperty(
             ElapsedTimeFormatter.formatElapsed(elapsedProperty.get()));
@@ -35,7 +36,7 @@ public class ControlPanelModel extends AbstractGriffonModel
         });
     }
 
-    public SimpleStringProperty currentTimeEntryIdProperty()
+    public SimpleLongProperty currentTimeEntryIdProperty()
     {
         return currentTimeEntryId;
     }

@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.util.List;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -19,7 +18,7 @@ import ru.dkolmogortsev.utils.ElapsedTimeFormatter;
 @ArtifactProviderFor(GriffonModel.class)
 public class ControlPanelModel extends AbstractGriffonModel
 {
-    private SimpleIntegerProperty elapsedProperty = new SimpleIntegerProperty(0);
+    private SimpleLongProperty elapsedProperty = new SimpleLongProperty(0);
     private SimpleLongProperty currentTimeEntryId = new SimpleLongProperty();
     private SimpleBooleanProperty taskStarted = new SimpleBooleanProperty(false);
     private SimpleStringProperty timerTextProp = new SimpleStringProperty(
@@ -34,6 +33,7 @@ public class ControlPanelModel extends AbstractGriffonModel
         {
             timerTextProp.set(ElapsedTimeFormatter.formatElapsed(newValue.intValue()));
         });
+
     }
 
     public SimpleLongProperty currentTimeEntryIdProperty()
@@ -41,7 +41,7 @@ public class ControlPanelModel extends AbstractGriffonModel
         return currentTimeEntryId;
     }
 
-    public int getElapsedProperty()
+    public long getElapsedProperty()
     {
         return elapsedProperty.get();
     }
@@ -83,7 +83,8 @@ public class ControlPanelModel extends AbstractGriffonModel
 
     public void startTimer()
     {
-        timer = FxTimer.runPeriodically(Duration.ofSeconds(1L), () -> elapsedProperty.set(elapsedProperty.get() + 1));
+        timer = FxTimer
+                .runPeriodically(Duration.ofSeconds(1L), () -> elapsedProperty.setValue(getElapsedProperty() + 1));
         taskStarted.set(true);
     }
 

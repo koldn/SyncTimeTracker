@@ -51,15 +51,14 @@ public class TimeEntry implements Comparable<TimeEntry>, Serializable
         return duration;
     }
 
-    public void updateDuration(int newDuration)
+    public void updateDuration(long duration)
     {
-        this.duration = newDuration;
+        this.duration = duration * 1000;
     }
 
     public void stop()
     {
-        this.end = System.currentTimeMillis();
-        this.duration = end - start;
+        this.end = this.start + this.duration;
     }
 
     public long getId()

@@ -28,6 +28,14 @@ public class TimeEntriesStorage
     {
         infStorage = manager.timeEntryStorage();
         factory = Search.getQueryFactory(infStorage);
+
+        List<TimeEntry> brokenEntries = factory.from(TimeEntry.class).having("end").eq(0).build().list();
+        brokenEntries.forEach(timeEntry ->
+        {
+            timeEntry.stop();
+            infStorage.put(timeEntry.getId(), timeEntry);
+        });
+
     }
 
     public TimeEntry save(TimeEntry entry)
@@ -48,7 +56,7 @@ public class TimeEntriesStorage
     public List<TimeEntry> getByEntryDate(long entryDate)
     {
         List<TimeEntry> entries = factory.from(TimeEntry.class).having("entryDate").eq(entryDate)
-                .orderBy("start", SortOrder.ASC).build().list();
+                .orderBy("start", SortOrder.DESC).build().list();
         return entries;
     }
 

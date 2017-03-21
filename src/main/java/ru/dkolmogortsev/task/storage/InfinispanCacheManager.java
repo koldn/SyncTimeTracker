@@ -27,9 +27,7 @@ public class InfinispanCacheManager
                 .location(".syncData/").preload(true).purgeOnStartup(false).build();
         manager.defineConfiguration("tasks", configuration);
 
-        Configuration entriesConf = new ConfigurationBuilder().persistence().passivation(false).addSingleFileStore()
-                .location(".syncData/").preload(true).purgeOnStartup(false).build();
-        manager.defineConfiguration("timeEntries", entriesConf);
+        manager.defineConfiguration("timeEntries", configuration);
 
     }
 

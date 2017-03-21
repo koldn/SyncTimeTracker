@@ -24,7 +24,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 import javax.inject.Inject;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonView;
 import org.joda.time.Duration;
@@ -114,10 +113,13 @@ public class TaskPanelView extends AbstractGriffonView
 
         deleteButton.setOnAction(event -> publishEntryDeleted(timeEntry));
 
-        String startStopString = new StringBuilder().append(getTimeFromMills(timeEntry.getStart())).append(" -> ").append(getTimeFromMills(timeEntry.getEnd())).toString();
+        String startStopString = new StringBuilder().append(getTimeFromMills(timeEntry.getStart())).append(" -> ")
+                .append(getTimeFromMills(timeEntry.getEnd())).toString();
         Label startStopLabel = new Label(startStopString);
-        startStopLabel.setTextAlignment(TextAlignment.CENTER);
-        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
+        startStopLabel.setAlignment(Pos.CENTER);
+        startStopLabel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        entry.addRow(0, new Label(t.getDescription()), new Label(t.getTaskName()), new Label(
+                        ElapsedTimeFormatter.formatElapsed(new Duration(timeEntry.getDuration()).getStandardSeconds())),
                 startStopLabel, timeEntryButton, deleteButton);
 
         initHover(entry, timeEntryButton, deleteButton);
@@ -201,11 +203,16 @@ public class TaskPanelView extends AbstractGriffonView
         long overAllDuration = entries.stream().mapToLong(TimeEntry::getDuration).sum();
 
         FlowPane ents = new FlowPane();
+
         ents.prefWidthProperty().bind(parentPane.widthProperty());
         ToggleButton tg = new ToggleButton();
         tg.setText(String.valueOf(entries.size()));
         tg.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         tg.getStyleClass().clear();
+        ImageView hoverIcon = new ImageView(
+                (String)getApplication().getResourceResolver().resolveResource("collapse.duplicate"));
+        tg.graphicProperty().bind(Bindings.when(tg.selectedProperty()).then(hoverIcon).otherwise(new ImageView()));
+        tg.textProperty().bind(Bindings.when(tg.selectedProperty()).then("").otherwise(String.valueOf(entries.size())));
 
         EventStreams.changesOf(tg.selectedProperty()).subscribe(booleanChange ->
         {

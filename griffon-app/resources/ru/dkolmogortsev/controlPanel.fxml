@@ -23,8 +23,8 @@
         fx:id="startButton"/>
       <Button GridPane.columnIndex="0" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="0" GridPane.vgrow="SOMETIMES"
         cancelButton="false" contentDisplay="GRAPHIC_ONLY" defaultButton="false" maxHeight="1.7976931348623157E308"
-        maxWidth="1.7976931348623157E308" mnemonicParsing="false" scaleX="1.0" text="Button" textOverrun="CLIP"
-        fx:id="config"/>
+        maxWidth="1.7976931348623157E308" mnemonicParsing="false" scaleX="1.0" text="" textOverrun="CLIP"
+        fx:id="menuButton"/>
     </children>
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="364.0" minWidth="10.0" percentWidth="10.0" />

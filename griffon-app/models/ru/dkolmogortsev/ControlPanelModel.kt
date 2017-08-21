@@ -12,65 +12,70 @@ import ru.dkolmogortsev.utils.formatToElapsed
 import java.time.Duration
 
 @ArtifactProviderFor(GriffonModel::class)
-class ControlPanelModel : AbstractGriffonModel() {
+class ControlPanelModel : AbstractGriffonModel()
+{
     private val elapsedProperty = SimpleLongProperty(0)
     private val currentTimeEntryIdProperty = SimpleLongProperty()
     private val taskStarted = SimpleBooleanProperty(false)
     val timerTextProp = SimpleStringProperty(elapsedProperty.get().formatToElapsed())
     private val taskNameProperty = SimpleStringProperty("Name")
     private val taskDescriptionProperty = SimpleStringProperty("Description")
-    private val tasks = SimpleListProperty<Task>()
+    private val searchResultProperty = SimpleListProperty<Task>()
+    var taskSelectedProperty: SimpleBooleanProperty = SimpleBooleanProperty(false)
     private lateinit var timer: Timer
-
     var timeEntryId
         get() = currentTimeEntryIdProperty.get()
         set(value) = currentTimeEntryIdProperty.set(value)
 
-    var elapsed
-        get() = elapsedProperty.get()
-        set(value) = elapsedProperty.set(value)
-
-    init {
+    init
+    {
         elapsedProperty.addListener { _, _, newValue -> timerTextProp.set(newValue.toLong().formatToElapsed()) }
     }
 
-    fun getElapsedProperty(): Long {
+    fun getElapsedProperty(): Long
+    {
         return elapsedProperty.get()
     }
 
-    fun taskStartedProperty(): SimpleBooleanProperty {
+    fun taskStartedProperty(): SimpleBooleanProperty
+    {
         return taskStarted
     }
 
-    fun taskNameProperty(): SimpleStringProperty {
+    fun taskNameProperty(): SimpleStringProperty
+    {
         return taskNameProperty
     }
 
-    fun taskDescriptionProperty(): SimpleStringProperty {
+    fun taskDescriptionProperty(): SimpleStringProperty
+    {
         return taskDescriptionProperty
     }
 
     val isTaskStarted: Boolean
         get() = taskStarted.get()
 
-    fun tasksProperty(): ListProperty<Task> {
-        return tasks
+    fun searchResultsProperty(): ListProperty<Task>
+    {
+        return searchResultProperty
     }
 
-    fun setList(tasks: List<Task>) {
-        this.tasks.value = FXCollections.observableArrayList(tasks)
+    fun setSearchResults(tasks: List<Task>)
+    {
+        this.searchResultProperty.value = FXCollections.observableArrayList(tasks)
     }
 
-    fun startTimer() {
+    fun startTimer()
+    {
         timer = FxTimer
                 .runPeriodically(Duration.ofSeconds(1L)) { elapsedProperty.value = getElapsedProperty() + 1 }
         taskStarted.set(true)
     }
 
-    fun stopTimer() {
+    fun stopTimer()
+    {
         elapsedProperty.set(0)
         timer.stop()
         taskStarted.set(false)
     }
-
 }

@@ -12,23 +12,22 @@ import javax.inject.Singleton
  */
 @Singleton
 class TaskStorage @Inject
-internal constructor(manager: InfinispanCacheManager) : EventHandler {
+internal constructor(manager: InfinispanCacheManager) : Storage<Task>
+{
+    override operator fun get(id: Long): Task
+    {
+        return cache[id]!!
+    }
+
+    override fun save(toSave: Task)
+    {
+        cache.computeIfAbsent(toSave.id, { _ -> toSave })
+    }
 
     internal var LOG = LoggerFactory.getLogger(TaskStorage::class.java)
-
-    private val cache: Cache<Long, Task>
-
-    init {
-        cache = manager.taskStorage()
-    }
-
-    fun create(description: String, name: String): Task {
-
-        val newTask = Task(description, name)
-        return (cache as java.util.Map<Long, Task>).computeIfAbsent(newTask.id) { integer -> newTask }
-    }
-
-    fun getTask(taskId: Long): Task {
+    private val cache: Cache<Long, Task> = manager.taskStorage()
+    fun getTask(taskId: Long): Task
+    {
         return cache[taskId]!!
     }
 }

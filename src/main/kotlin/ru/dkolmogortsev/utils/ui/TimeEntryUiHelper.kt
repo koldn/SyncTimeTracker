@@ -1,4 +1,4 @@
-package ru.dkolmogortsev.utils
+package ru.dkolmogortsev.utils.ui
 
 import com.google.common.collect.Lists
 import javafx.scene.layout.ColumnConstraints

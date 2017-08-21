@@ -2,6 +2,7 @@ package ru.dkolmogortsev.task.storage
 
 import org.infinispan.Cache
 import org.infinispan.configuration.cache.ConfigurationBuilder
+import org.infinispan.configuration.cache.Index
 import org.infinispan.manager.DefaultCacheManager
 import org.infinispan.manager.EmbeddedCacheManager
 import ru.dkolmogortsev.task.Task
@@ -21,9 +22,9 @@ class InfinispanCacheManager {
     fun init() {
         manager = DefaultCacheManager()
         val configuration = ConfigurationBuilder().persistence().passivation(false).addSingleFileStore()
-                .location(".syncData/").preload(true).purgeOnStartup(false).build()
+                .location(".syncData/").preload(true).purgeOnStartup(false)
+                .build()
         manager!!.defineConfiguration("tasks", configuration)
-
         manager!!.defineConfiguration("timeEntries", configuration)
 
     }
@@ -33,6 +34,6 @@ class InfinispanCacheManager {
     }
 
     fun timeEntryStorage(): Cache<Long, TimeEntry> {
-        return manager!!.getCache<Long, TimeEntry>("timeEntries", true)
+        return manager!!.getCache<Long, TimeEntry>("timeEntries")
     }
 }

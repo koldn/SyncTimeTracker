@@ -14,18 +14,24 @@ import javafx.geometry.Pos
 import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.*
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import org.codehaus.griffon.runtime.javafx.artifact.AbstractJavaFXGriffonView
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
-import ru.dkolmogortsev.messages.StartTask
+import ru.dkolmogortsev.events.EventPublisher
+import ru.dkolmogortsev.events.TaskSelectedEvent
+import ru.dkolmogortsev.events.TaskStartedEvent
 import ru.dkolmogortsev.task.Task
 import ru.dkolmogortsev.task.search.SearchFields
-import ru.dkolmogortsev.task.search.SearchFields.TASKNAME
+import ru.dkolmogortsev.task.search.SearchFields.TASK_NAME
+import javax.inject.Inject
 
 @ArtifactProviderFor(GriffonView::class)
-class ControlPanelView : AbstractJavaFXGriffonView() {
+class ControlPanelView : AbstractJavaFXGriffonView()
+{
     @FXML
     private lateinit var startButton: Button
     @FXML
@@ -42,17 +48,20 @@ class ControlPanelView : AbstractJavaFXGriffonView() {
     private lateinit var model: ControlPanelModel
     @MVCMember
     private lateinit var parentView: ControlAndTaskView
+    @Inject
+    private lateinit var eventPublisher: EventPublisher
     private val started = SimpleBooleanProperty(false)
     private val tasksToShow = SimpleListProperty<Task>()
     private val menu = ContextMenu()
     private lateinit var eventSub: Subscription
     private lateinit var popupSubscription: Subscription
-
-    override fun initUI() {
+    override fun initUI()
+    {
         val node = init()
+
         timerLabel.textProperty().bind(model.timerTextProp)
         started.bind(model.taskStartedProperty())
-        tasksToShow.bind(model.tasksProperty())
+        tasksToShow.bind(model.searchResultsProperty())
 
         taskDescription.textProperty().bindBidirectional(model.taskDescriptionProperty())
         taskName.textProperty().bindBidirectional(model.taskNameProperty())
@@ -63,29 +72,44 @@ class ControlPanelView : AbstractJavaFXGriffonView() {
         menuButton.heightProperty().addListener { _, _, newValue -> menuIcon.glyphSize = newValue.toDouble() / 2 }
         menuButton.graphic = menuIcon
 
-
         toStartButton()
         parentView.getContainerPane().addRow(0, node)
         started.addListener { _, _, newValue ->
-            if (newValue) {
+            if (newValue)
+            {
                 toStopButton()
-            } else {
+            }
+            else
+            {
                 toStartButton()
             }
+            startButton.requestFocus()
         }
         node.requestFocus()
         onFocus(taskDescription, SearchFields.DESCRIPTION)
-        onFocus(taskName, TASKNAME)
-
+        onFocus(taskName, TASK_NAME)
+        model.taskSelectedProperty.addListener({ _, _, v ->
+            if (v)
+            {
+                startButton.requestFocus()
+            }
+        })
+        EventStreams.eventsOf(node.scene, KeyEvent.KEY_PRESSED).subscribe({
+            if (it.code.equals(KeyCode.ESCAPE))
+            {
+                taskDescription.requestFocus()
+            }
+        })
     }
 
-    private fun buildPopupElement(menu: ContextMenu, s: Task, mapper: (Task) -> String) {
+    private fun buildPopupElement(menu: ContextMenu, s: Task, mapper: (Task) -> String)
+    {
         val pane = GridPane()
-
         val c = ColumnConstraints()
         c.percentWidth = 100.0
         pane.columnConstraints.add(c)
         val innerButton = Label(mapper.invoke(s))
+        innerButton.textOverrun = OverrunStyle.CLIP
         innerButton.padding = Insets(5.0, 0.0, 0.0, 5.0)
         innerButton.maxWidth = java.lang.Double.MAX_VALUE
         innerButton.maxHeight = java.lang.Double.MAX_VALUE
@@ -96,62 +120,68 @@ class ControlPanelView : AbstractJavaFXGriffonView() {
         pane.prefHeight = taskDescription.height * 0.75
         val customMenuItem = CustomMenuItem(pane)
 
-        customMenuItem.setOnAction { event -> application.eventRouter.publishEvent(StartTask(s.id)) }
+        customMenuItem.setOnAction { event -> eventPublisher.publishTaskSelected(s.id) }
 
         menu.items.add(customMenuItem)
     }
 
     // build the UI
-    private fun init(): Node {
+    private fun init(): Node
+    {
         var node = loadFromFXML()!!
         connectActions(node, controller)
         connectMessageSource(node)
         return node
     }
 
-    private fun toStartButton() {
+    private fun toStartButton()
+    {
         startButton.styleClass.setAll("btn", "btn-success")
         startButton.text = "Start"
     }
 
-    private fun toStopButton() {
+    private fun toStopButton()
+    {
         startButton.styleClass.setAll("btn", "btn-danger")
         startButton.text = "Stop"
     }
 
-    private fun onFocus(focusedField: TextField, searchField: SearchFields) {
+    private fun onFocus(focusedField: TextField, searchField: SearchFields)
+    {
         menu.maxWidthProperty().bind(focusedField.widthProperty())
         menu.isAutoFix = true
 
         EventStreams.changesOf(focusedField.focusedProperty()).subscribe { booleanChange ->
-            if (booleanChange.newValue) {
+            if (booleanChange.newValue)
+            {
                 menu.show(focusedField, Side.BOTTOM, 0.0, 0.0)
                 eventSub = EventStreams.valuesOf(focusedField.textProperty())
                         .subscribe { s -> controller.search(s, searchField) }
-                if (focusedField.text == searchField.toString()) {
+                if (focusedField.text == searchField.toString())
+                {
                     focusedField.text = ""
                 }
 
-
                 popupSubscription = EventStreams.valuesOf<ObservableList<Task>>(tasksToShow).subscribe { tasks ->
-                    if (tasks == null) {
+                    if (tasks == null)
+                    {
                     }
+                    menu.hide()
                     menu.items.clear()
                     tasks.stream().limit(10).forEach { s -> buildPopupElement(menu, s, searchField.mapper) }
-                    if (tasks.size > 10) {
+                    if (tasks.size > 10)
+                    {
                         buildPopupElement(menu, Task("Found more than 10 elements", "Found more than 10 elements"), { task -> task.description })
                     }
                     menu.show(focusedField, Side.BOTTOM, 0.0, 0.0)
                 }
-
-            } else {
+            }
+            else
+            {
                 popupSubscription.unsubscribe()
                 eventSub.unsubscribe()
                 menu.hide()
             }
         }
-
-
     }
-
 }

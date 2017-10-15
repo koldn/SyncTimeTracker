@@ -47,7 +47,7 @@ object ButtonStyler
         var sub: Subscription = Subscription.EMPTY
         EventStreams.changesOf(booleanBinding).subscribe({
             if (it.newValue) {
-                sub = EventStreams.eventsOf(entry, KeyEvent.KEY_PRESSED).subscribe({
+                sub = EventStreams.eventsOf(entry.scene, KeyEvent.KEY_PRESSED).subscribe({
                     when {
                         it.code.equals(KeyCode.DELETE) -> deleteButton.fire()
                         it.code.equals(KeyCode.ENTER) && it.isControlDown -> startButton.fire()

@@ -1,13 +1,11 @@
 package ru.dkolmogortsev.events
 
-import griffon.core.event.Event
+import tornadofx.FXEvent
 
 /**
  * Created by dkolmogortsev on 3/11/17.
  */
-class TimeEntryDeletedEvent(entryId: Long) : Event(entryId)
+class TimeEntryDeletedEvent(entryId: Long) : FXEvent()
 {
-
-    val entryId: Long
-        get() = getSource() as Long
+    val entryId: Long = entryId
 }

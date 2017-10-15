@@ -1,8 +1,10 @@
 package ru.dkolmogortsev.task
 
-import org.hibernate.search.annotations.*
+import org.hibernate.search.annotations.Analyze
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.Store
 import org.joda.time.LocalDate
-import ru.dkolmogortsev.utils.ui.ButtonStyler
 import java.io.Serializable
 
 /**

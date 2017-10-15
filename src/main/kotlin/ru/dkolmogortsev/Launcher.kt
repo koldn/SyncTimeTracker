@@ -1,8 +1,8 @@
 package ru.dkolmogortsev
 
-import griffon.javafx.JavaFXGriffonApplication
+import javafx.application.Application
 
 fun main(args: Array<String>)
 {
-    JavaFXGriffonApplication.main(args)
+    Application.launch(App::class.java)
 }

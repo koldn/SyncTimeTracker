@@ -1,22 +1,20 @@
 package ru.dkolmogortsev.task.storage
 
-import com.google.common.collect.Maps
 import org.infinispan.Cache
 import org.infinispan.query.Search
 import org.infinispan.query.dsl.QueryFactory
 import org.infinispan.query.dsl.SortOrder
 import ru.dkolmogortsev.task.TimeEntry
+import tornadofx.Component
+import tornadofx.ScopedInstance
 import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Created by dkolmogortsev on 2/25/17.
  */
-@Singleton
-class TimeEntriesStorage @Inject constructor(manager: InfinispanCacheManager) : Storage<TimeEntry>
+class TimeEntriesStorage : Component(), Storage<TimeEntry>, ScopedInstance
 {
-	internal var infStorage: Cache<Long, TimeEntry> = manager.timeEntryStorage()
+	internal var infStorage: Cache<Long, TimeEntry> = InfinispanCacheManager.timeEntryStorage()
 	private val factory: QueryFactory
 	override fun save(entry: TimeEntry)
 	{

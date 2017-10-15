@@ -5,22 +5,19 @@ import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
 import org.joda.time.Duration
-import ru.dkolmogortsev.controls.TimeEntryButton
 import ru.dkolmogortsev.events.EventPublisher
 import ru.dkolmogortsev.task.TimeEntry
 import ru.dkolmogortsev.utils.formatToElapsed
 import ru.dkolmogortsev.utils.getTimeFromLong
-import javax.inject.Inject
-import javax.inject.Singleton
+import tornadofx.Component
 
 /**
  * Created by dkolmogortsev on 30.07.2017.
  */
-@Singleton
-class TimeEntryUiLineBuilderService
+class TimeEntryUiLineBuilderService : Component()
 {
-    @Inject
-    private lateinit var eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher by inject()
+    private val buttonFactory: ButtonFactory by inject()
 
     inner class Builder(val timeEntry: TimeEntry, val width: DoubleExpression, val height: DoubleExpression)
     {
@@ -33,15 +30,9 @@ class TimeEntryUiLineBuilderService
             entry.columnConstraints.addAll(TimeEntryUiHelper.constraints)
 
             entry.prefWidthProperty().bind(width)
-            val startButton = TimeEntryButton()
-            ButtonStyler.asStartButton(startButton)
-            startButton.prefHeightProperty().bind(height.multiply(0.90))
-            val deleteButton = TimeEntryButton()
-            ButtonStyler.asDeleteButton(deleteButton)
-            deleteButton.prefHeightProperty().bind(height.multiply(0.90))
 
-            startButton.setOnAction { _ -> eventPublisher.publishTaskStarted(task.id) }
-            deleteButton.setOnAction { _ -> eventPublisher.publishTimeEntryDeleted(timeEntry.id) }
+            val startButton = buttonFactory.createStartTimeEntryButton(task.id, height)
+            val deleteButton = buttonFactory.createDeleteTimeEntryButton(timeEntry.id, height)
             val startStopString = StringBuilder().append(timeEntry.start.getTimeFromLong()).append(" -> ")
                     .append(timeEntry.end.getTimeFromLong()).toString()
             val startStopLabel = Label(startStopString)

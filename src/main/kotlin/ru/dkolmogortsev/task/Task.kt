@@ -1,8 +1,10 @@
 package ru.dkolmogortsev.task
 
 import com.google.common.base.Objects
-import org.hibernate.search.annotations.*
-import ru.dkolmogortsev.task.storage.bridge.LowerCaseStringBrigde
+import org.hibernate.search.annotations.Analyze
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.Store
 import java.io.Serializable
 
 /**

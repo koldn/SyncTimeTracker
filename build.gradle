@@ -6,7 +6,6 @@ buildscript {
     }
 
     dependencies {
-        classpath 'net.nemerosa:versioning:2.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
     }
 }
@@ -16,18 +15,9 @@ repositories {
     jcenter()
 }
 
-apply plugin: 'groovy'
 apply plugin: 'application'
 apply plugin: 'kotlin'
 apply plugin: 'idea'
-apply plugin: 'net.nemerosa.versioning'
-
-Date buildTimeAndDate = new Date()
-ext {
-    buildDate = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
-    buildTime = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
-    macosx = System.getProperty('os.name').contains('Mac OS')
-}
 
 def infinispanVersion = '9.0.1.Final'
 
@@ -35,11 +25,8 @@ mainClassName = 'ru.dkolmogortsev.LauncherKt'
 
 
 dependencies {
-    compileOnly     "org.codehaus.griffon:griffon-core-compile:${griffonVersion}"
-    kapt            "org.codehaus.griffon:griffon-core-compile:${griffonVersion}"
+    compile 'no.tornado:tornadofx:1.7.11'
 
-    compile "org.codehaus.griffon:griffon-javafx:${griffonVersion}"
-    compile "org.codehaus.griffon:griffon-guice:${griffonVersion}"
     compile group: 'org.reactfx', name: 'reactfx', version: '1.4.1'
     compile 'org.kordamp.bootstrapfx:bootstrapfx-core:0.2.1'
     compile "org.infinispan:infinispan-core:${infinispanVersion}"
@@ -52,9 +39,14 @@ dependencies {
     compile 'de.jensd:fontawesomefx-materialdesignfont:1.7.22-4'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:${kotlinVersion}"
 
+    //Ignite
+    compile "org.apache.ignite:ignite-core:${igniteVersion}"
+    compile "org.apache.ignite:ignite-indexing:${igniteVersion}"
+
+
+
     runtime 'org.slf4j:slf4j-simple:1.7.21'
 
-    testCompile "org.codehaus.griffon:griffon-javafx-test:${griffonVersion}"
     testCompile "org.codehaus.groovy:groovy-all:${groovyVersion}"
     testCompile "org.spockframework:spock-core:${spockVersion}"
 }
@@ -74,19 +66,11 @@ sourceSets {
     main {
         kotlin {
             srcDirs += [
-                    'griffon-app/conf',
-                    'griffon-app/controllers',
-                    'griffon-app/models',
-                    'griffon-app/views',
-                    'griffon-app/services',
-                    'griffon-app/lifecycle',
                     'src/main/kotlin'
             ]
         }
         resources {
             srcDirs += [
-                    'griffon-app/resources',
-                    'griffon-app/i18n',
                     'src/main/resources'
             ]
         }

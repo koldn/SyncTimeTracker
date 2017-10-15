@@ -1,19 +1,17 @@
 package ru.dkolmogortsev.task.storage
 
-import griffon.core.event.EventHandler
 import org.infinispan.Cache
 import org.slf4j.LoggerFactory
 import ru.dkolmogortsev.task.Task
-import javax.inject.Inject
-import javax.inject.Singleton
+import tornadofx.Component
+import tornadofx.ScopedInstance
 
 /**
  * Created by dkolmogortsev on 2/11/17.
  */
-@Singleton
-class TaskStorage @Inject
-internal constructor(manager: InfinispanCacheManager) : Storage<Task>
+class TaskStorage : Component(), Storage<Task>, ScopedInstance
 {
+
     override operator fun get(id: Long): Task
     {
         return cache[id]!!
@@ -21,11 +19,11 @@ internal constructor(manager: InfinispanCacheManager) : Storage<Task>
 
     override fun save(toSave: Task)
     {
-        cache.computeIfAbsent(toSave.id, { _ -> toSave })
+        cache.putIfAbsent(toSave.id, toSave)
     }
 
     internal var LOG = LoggerFactory.getLogger(TaskStorage::class.java)
-    private val cache: Cache<Long, Task> = manager.taskStorage()
+    private val cache: Cache<Long, Task> = InfinispanCacheManager.taskStorage()
     fun getTask(taskId: Long): Task
     {
         return cache[taskId]!!

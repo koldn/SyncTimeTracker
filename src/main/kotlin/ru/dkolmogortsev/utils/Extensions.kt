@@ -1,5 +1,9 @@
 package ru.dkolmogortsev.utils
 
+import javafx.scene.layout.Priority
+import javafx.scene.layout.Region
+import tornadofx.hgrow
+import tornadofx.vgrow
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,4 +28,11 @@ fun Long.formatToElapsed(): String {
     val minutes = this % SECONDS_IN_HOUR / SECONDS_IN_MINUTE
     val secs = this % SECONDS_IN_MINUTE
     return String.format("%d:%02d:%02d", hours, minutes, secs)
+}
+
+fun Region.setControlPanelProps() {
+    this.vgrow = Priority.ALWAYS
+    this.hgrow = Priority.ALWAYS
+    this.maxHeight = Double.MAX_VALUE
+    this.maxWidth = Double.MAX_VALUE
 }

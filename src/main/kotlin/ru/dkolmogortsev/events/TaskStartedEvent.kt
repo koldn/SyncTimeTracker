@@ -1,13 +1,11 @@
 package ru.dkolmogortsev.events
 
-import griffon.core.event.Event
+import tornadofx.FXEvent
 
 /**
  * Created by dkolmogortsev on 2/26/17.
  */
-class TaskStartedEvent(taskId: Long) : Event(taskId)
+class TaskStartedEvent(taskId: Long) : FXEvent()
 {
-
-    val taskId: Long
-        get() = getSource() as Long
+    val taskId: Long = taskId
 }

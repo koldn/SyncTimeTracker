@@ -1,51 +1,40 @@
-package ru.dkolmogortsev
+package ru.dkolmogortsev.ui.controllers
 
-import griffon.core.artifact.GriffonController
-import griffon.inject.MVCMember
-import griffon.metadata.ArtifactProviderFor
-import griffon.transform.Threading
-import griffon.transform.Threading.Policy
-import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonController
 import org.reactfx.util.FxTimer
 import org.reactfx.util.Timer
+import ru.dkolmogortsev.events.EventPublisher
 import ru.dkolmogortsev.events.TaskSelectedEvent
 import ru.dkolmogortsev.events.TaskStartedEvent
-import ru.dkolmogortsev.events.TaskStoppedEvent
 import ru.dkolmogortsev.task.Task
 import ru.dkolmogortsev.task.TimeEntry
 import ru.dkolmogortsev.task.search.SearchFields
 import ru.dkolmogortsev.task.search.TaskSearcher
 import ru.dkolmogortsev.task.storage.TaskStorage
 import ru.dkolmogortsev.task.storage.TimeEntriesStorage
+import ru.dkolmogortsev.ui.models.ControlModel
+import tornadofx.Controller
 import java.time.Duration
-import javax.inject.Inject
 
-@ArtifactProviderFor(GriffonController::class)
-class ControlPanelController : AbstractGriffonController()
-{
-    @MVCMember
-    lateinit var model: ControlPanelModel
-    @Inject
+/**
+ * Created by dkolmogortsev on 10/13/17.
+ */
+class ControlsController : Controller() {
+    private val model: ControlModel by inject()
+
     private lateinit var searcher: TaskSearcher
-    @Inject
-    private lateinit var storage: TaskStorage
-    @Inject
-    private lateinit var entriesStorage: TimeEntriesStorage
+    private val storage: TaskStorage by inject()
+    private val entriesStorage: TimeEntriesStorage by inject()
+    private val eventPublisher: EventPublisher by inject()
     private lateinit var backUpTimer: Timer
-    override fun mvcGroupInit(args: MutableMap<String, Any>)
-    {
-        getApplication().eventRouter
-                .addEventListener(TaskStartedEvent::class.java, { onStartTask(it!![0] as TaskStartedEvent) })
-        getApplication().eventRouter
-                .addEventListener(TaskSelectedEvent::class.java, { onTaskSelected(it!!.first() as TaskSelectedEvent) })
-        super.mvcGroupInit(args)
+
+    init {
+        subscribe<TaskStartedEvent> { onStartTask(it) }
+        subscribe<TaskSelectedEvent> { onTaskSelected(it) }
     }
 
-    @Threading(Threading.Policy.INSIDE_UITHREAD_SYNC)
-    fun start()
-    {
-        if (!model.isTaskStarted)
-        {
+
+    fun start() {
+        if (!model.isTaskStarted) {
             val description = model.taskDescriptionProperty().get()
             val nameUI = model.taskNameProperty().get()
             val task = Task(description, nameUI)
@@ -55,50 +44,41 @@ class ControlPanelController : AbstractGriffonController()
             model.timeEntryId = te.id
             initTimeEntryBackup(te)
             model.startTimer()
-        }
-        else
-        {
+        } else {
             stopBackgroundBackup()
             val te = entriesStorage.get(model.timeEntryId)
             te.updateDuration(model.getElapsedProperty())
             te.stop()
             entriesStorage.save(te)
-            getApplication().eventRouter.publishEvent(TaskStoppedEvent(te.id))
             model.stopTimer()
+            eventPublisher.publishTaskStopped(te.id)
+
         }
     }
 
-    @Threading(Policy.OUTSIDE_UITHREAD)
-    private fun initTimeEntryBackup(te: TimeEntry)
-    {
+    private fun initTimeEntryBackup(te: TimeEntry) {
         backUpTimer = FxTimer.runPeriodically(Duration.ofSeconds(10)) {
             te.updateDuration(model.getElapsedProperty())
             entriesStorage.save(te)
         }
     }
 
-    @Threading(Policy.OUTSIDE_UITHREAD)
-    private fun stopBackgroundBackup()
-    {
+    private fun stopBackgroundBackup() {
         backUpTimer.stop()
     }
 
-    @Threading(Threading.Policy.INSIDE_UITHREAD_ASYNC)
-    fun search(searchStr: String, field: SearchFields)
-    {
-        model.setSearchResults(searcher.search(searchStr, field))
+    fun search(searchStr: String, field: SearchFields) {
+        model.setSearchResults(TaskSearcher.search(searchStr, field))
     }
 
-    fun onStartTask(taskStartedEvent: TaskStartedEvent)
-    {
+    fun onStartTask(taskStartedEvent: TaskStartedEvent) {
         val taskFromStorage = storage.getTask(taskStartedEvent.taskId)
         model.taskDescriptionProperty().set(taskFromStorage.description)
         model.taskNameProperty().set(taskFromStorage.taskName)
         start()
     }
 
-    fun onTaskSelected(taskSelectedEvent: TaskSelectedEvent)
-    {
+    fun onTaskSelected(taskSelectedEvent: TaskSelectedEvent) {
         val task = storage[taskSelectedEvent.taskId]
         model.taskDescriptionProperty().value = task.description
         model.taskNameProperty().value = task.taskName

@@ -1,59 +1,44 @@
 package ru.dkolmogortsev.task.storage
 
 import org.infinispan.Cache
-import org.infinispan.query.Search
-import org.infinispan.query.dsl.QueryFactory
-import org.infinispan.query.dsl.SortOrder
 import ru.dkolmogortsev.task.TimeEntry
 import tornadofx.Component
 import tornadofx.ScopedInstance
-import java.util.*
 
 /**
  * Created by dkolmogortsev on 2/25/17.
  */
-class TimeEntriesStorage : Component(), Storage<TimeEntry>, ScopedInstance
-{
-	internal var infStorage: Cache<Long, TimeEntry> = InfinispanCacheManager.timeEntryStorage()
-	private val factory: QueryFactory
-	override fun save(entry: TimeEntry)
-	{
-		infStorage.put(entry.id, entry)
-	}
+class TimeEntriesStorage : Component(), Storage<TimeEntry>, ScopedInstance {
+    internal var infStorage: Cache<Long, TimeEntry> = InfinispanCacheManager.timeEntryStorage()
+    override fun save(entry: TimeEntry) {
+        infStorage.put(entry.id, entry)
+    }
 
-	override operator fun get(timeEntryId: Long): TimeEntry
-	{
-		return infStorage[timeEntryId]!!
-	}
+    override operator fun get(timeEntryId: Long): TimeEntry {
+        return infStorage[timeEntryId]!!
+    }
 
-	fun delete(timeEntryId: Long): TimeEntry
-	{
-		return infStorage.remove(timeEntryId)!!
-	}
+    fun delete(timeEntryId: Long): TimeEntry {
+        return infStorage.remove(timeEntryId)!!
+    }
 
-	fun getByEntryDate(entryDate: Long): List<TimeEntry>
-	{
-		val entries = factory.from(TimeEntry::class.java).having("entryDate").equal(entryDate).orderBy("start", SortOrder.DESC).build().list<TimeEntry>()
-		return entries
-	}
+    fun getByEntryDate(entryDate: Long): List<TimeEntry> {
+        //TODO implement by lucene
+        return listOf()
+    }
 
-	val entriesGroupedByDay: Map<Long, List<TimeEntry>>
-		get()
-		{
-			val resultSet = factory.from(TimeEntry::class.java).select("entryDate").groupBy("entryDate")
-					.orderBy("entryDate", SortOrder.ASC).build().list<Array<Any>>()
-			val longListMap = TreeMap<Long, List<TimeEntry>>({ v1: Long, v2: Long -> v2.compareTo(v1) })
-			resultSet.onEach { arrayOfAnys -> longListMap.put(arrayOfAnys[0] as Long, getByEntryDate(arrayOfAnys[0] as Long)) }
-			return longListMap
-		}
+    //TODO implement by lucene
+    val entriesGroupedByDay: Map<Long, List<TimeEntry>>
+        get() {
+            return mapOf()
+        }
 
-	init
-	{
-		factory = Search.getQueryFactory(infStorage)
-		val brokenEntries = factory.from(TimeEntry::class.java).having("end").equal(0).build().list<TimeEntry>()
-		brokenEntries.forEach { timeEntry ->
-			timeEntry.stop()
-			infStorage.put(timeEntry.id, timeEntry)
-		}
-	}
+    init {
+//		factory = Search.getQueryFactory(infStorage)
+//		val brokenEntries = factory.from(TimeEntry::class.java).having("end").equal(0).build().list<TimeEntry>()
+//		brokenEntries.forEach { timeEntry ->
+//			timeEntry.stop()
+//			infStorage.put(timeEntry.id, timeEntry)
+//		}
+    }
 }

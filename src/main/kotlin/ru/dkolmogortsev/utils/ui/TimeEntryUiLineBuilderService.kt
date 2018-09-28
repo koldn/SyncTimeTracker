@@ -1,6 +1,5 @@
 package ru.dkolmogortsev.utils.ui
 
-import javafx.beans.binding.DoubleExpression
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
@@ -16,10 +15,9 @@ import tornadofx.Component
  */
 class TimeEntryUiLineBuilderService : Component()
 {
-    private val eventPublisher: EventPublisher by inject()
     private val buttonFactory: ButtonFactory by inject()
 
-    inner class Builder(val timeEntry: TimeEntry, val width: DoubleExpression, val height: DoubleExpression)
+    inner class Builder(val timeEntry: TimeEntry)
     {
         private val task = timeEntry.task
         fun build(): GridPane
@@ -29,10 +27,10 @@ class TimeEntryUiLineBuilderService : Component()
             entry.focusTraversableProperty().set(true)
             entry.columnConstraints.addAll(TimeEntryUiHelper.constraints)
 
-            entry.prefWidthProperty().bind(width)
+            entry.prefWidthProperty().bind(primaryStage.widthProperty())
 
-            val startButton = buttonFactory.createStartTimeEntryButton(task.id, height)
-            val deleteButton = buttonFactory.createDeleteTimeEntryButton(timeEntry.id, height)
+            val startButton = buttonFactory.createStartTimeEntryButton(task.id)
+            val deleteButton = buttonFactory.createDeleteTimeEntryButton(timeEntry.id)
             val startStopString = StringBuilder().append(timeEntry.start.getTimeFromLong()).append(" -> ")
                     .append(timeEntry.end.getTimeFromLong()).toString()
             val startStopLabel = Label(startStopString)

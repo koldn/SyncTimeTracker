@@ -1,5 +1,7 @@
 package ru.dkolmogortsev.ui.views
 
+import javafx.collections.MapChangeListener
+import javafx.scene.control.ScrollPane
 import org.reactfx.EventStreams
 import ru.dkolmogortsev.customui.DailyGridContainer
 import ru.dkolmogortsev.task.TimeEntry
@@ -17,8 +19,6 @@ class TaskPanelView : View("My View") {
     private val model: TaskPanelModel by inject()
     private val dayGridBuilderService: DayGridBuilderService by inject()
 
-    private val controlsView: ControlsView by inject()
-
     private val controller: TaskPanelController by inject()
 
     private lateinit var entriesPane: DailyGridContainer
@@ -27,6 +27,8 @@ class TaskPanelView : View("My View") {
     lateinit var parentView: MainView
 
     override val root = scrollpane {
+        vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+        hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
         prefHeight = 400.00
         isFocusTraversable = false
         entriesPane = DailyGridContainer()
@@ -42,20 +44,18 @@ class TaskPanelView : View("My View") {
 
     override fun onDock() {
         root.prefWidthProperty().bind(parentView.root.widthProperty())
-        EventStreams.changesOf(model.map).subscribe { change ->
+        model.map.addListener(MapChangeListener { change ->
             val date = change.key.toLong()
             val list = change.map[date] as List<TimeEntry>
             val gridIndex = entriesPane.getGridIndex(date)
             val dayGrid = dayGridBuilderService.Builder(date,
-                    controlsView.root.widthProperty(),
-                    controlsView.root.heightProperty(),
                     list.groupBy { it.task.id }).build()
             if (gridIndex == -1) {
                 entriesPane.children.add(dayGrid)
             } else {
                 entriesPane.children.set(gridIndex, dayGrid)
             }
-        }
+        })
         controller.init()
     }
 }

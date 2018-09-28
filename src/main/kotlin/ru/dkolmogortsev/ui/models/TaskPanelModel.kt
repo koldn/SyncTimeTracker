@@ -10,5 +10,5 @@ import java.util.*
  * Created by dkolmogortsev on 10/15/17.
  */
 class TaskPanelModel : Component(), ScopedInstance {
-    val map = FXCollections.observableMap(TreeMap<Long, List<TimeEntry>>({ l1: Long, l2: Long -> l1.compareTo(l2) }))
+    val map = FXCollections.observableMap(TreeMap<Long, List<TimeEntry>> { l1: Long, l2: Long -> l1.compareTo(l2) })
 }

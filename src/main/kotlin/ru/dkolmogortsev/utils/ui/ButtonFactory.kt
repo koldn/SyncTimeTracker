@@ -1,6 +1,5 @@
 package ru.dkolmogortsev.utils.ui
 
-import javafx.beans.binding.DoubleExpression
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import ru.dkolmogortsev.events.EventPublisher
@@ -14,17 +13,18 @@ class ButtonFactory : UIComponent("ButtonFactory"), ScopedInstance {
 
     private val eventPublisher: EventPublisher by inject()
 
-    fun Button.setup(height: DoubleExpression) {
+    fun Button.setup() {
         setMaxSize(java.lang.Double.MAX_VALUE, java.lang.Double.MAX_VALUE)
         styleClass.clear()
         alignment = Pos.CENTER
-        prefHeightProperty().bind(height.multiply(0.90))
+        val heightProperty = primaryStage.heightProperty()
+        prefHeightProperty().bind(heightProperty.multiply(0.1))
         isFocusTraversable = false
     }
 
-    fun createStartTimeEntryButton(entryId: Long, height: DoubleExpression): Button {
+    fun createStartTimeEntryButton(entryId: Long): Button {
         return button {
-            setup(height)
+            setup()
             ButtonStyler.asStartButton(this)
             action {
                 eventPublisher.publishTaskStarted(entryId)
@@ -32,13 +32,12 @@ class ButtonFactory : UIComponent("ButtonFactory"), ScopedInstance {
         }
     }
 
-    fun createDeleteTimeEntryButton(entryId: Long, height: DoubleExpression): Button {
+    fun createDeleteTimeEntryButton(entryId: Long): Button {
         return button {
-            setup(height)
+            setup()
             ButtonStyler.asDeleteButton(this)
             action {
                 eventPublisher.publishTimeEntryDeleted(entryId)
-
             }
         }
     }

@@ -3,10 +3,3 @@
     -fx-padding:0,0,0,0;
     -fx-insets: 0,0,0,0;
 }
-
-.daygrid-lbl{
-    -fx-padding: .2em .6em .3em .6em;
-    -fx-font-size: 100%;
-    -fx-font-weight: bold;
-    -fx-text-fill: white;
-}

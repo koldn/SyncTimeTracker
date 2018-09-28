@@ -18,6 +18,7 @@ import ru.dkolmogortsev.task.Task
 import ru.dkolmogortsev.task.search.SearchFields
 import ru.dkolmogortsev.ui.controllers.ControlsController
 import ru.dkolmogortsev.ui.models.ControlModel
+import ru.dkolmogortsev.utils.AppStyles
 import ru.dkolmogortsev.utils.setControlPanelProps
 import tornadofx.*
 
@@ -49,9 +50,12 @@ class ControlsView : View("My View") {
             }
             taskDescription = textfield {
                 setControlPanelProps()
+                styleClass.clear()
                 prefWidth = 200.0
                 id = "taskDescription"
                 textProperty().bindBidirectional(model.taskDescriptionProperty())
+                addClass(AppStyles.descriptionField)
+
             }
             textfield {
                 setControlPanelProps()
@@ -79,7 +83,6 @@ class ControlsView : View("My View") {
         var heightConstraint = RowConstraints()
         heightConstraint.vgrow = Priority.ALWAYS
         heightConstraint.percentHeight = -1.0
-
         rowConstraints.add(heightConstraint)
 
         listOf(10.00, 30.00, 30.00, 15.00, 15.00).forEach {

@@ -7,9 +7,8 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.geometry.Side
 import javafx.scene.control.*
-import javafx.scene.layout.ColumnConstraints
-import javafx.scene.layout.Priority
-import javafx.scene.layout.RowConstraints
+import javafx.scene.layout.*
+import javafx.scene.paint.Color
 import javafx.scene.text.TextAlignment
 import org.reactfx.EventStreams
 import org.reactfx.Subscription
@@ -19,6 +18,8 @@ import ru.dkolmogortsev.task.search.SearchFields
 import ru.dkolmogortsev.ui.controllers.ControlsController
 import ru.dkolmogortsev.ui.models.ControlModel
 import ru.dkolmogortsev.utils.AppStyles
+import ru.dkolmogortsev.utils.clearBorder
+import ru.dkolmogortsev.utils.newBorderColor
 import ru.dkolmogortsev.utils.setControlPanelProps
 import tornadofx.*
 
@@ -29,6 +30,7 @@ class ControlsView : View("My View") {
 
     var startButton: Button by singleAssign()
     var taskDescription: TextField by singleAssign()
+    var projectButton: Button by singleAssign()
     private val model: ControlModel by inject()
     val controller: ControlsController by inject()
     private val eventPublisher: EventPublisher by inject()
@@ -45,23 +47,55 @@ class ControlsView : View("My View") {
                 setControlPanelProps()
                 val materialDesignIconView = MaterialDesignIconView(MaterialDesignIcon.MENU)
                 graphic = materialDesignIconView
-                heightProperty().addListener({ _, _, newValue -> materialDesignIconView.glyphSize = newValue.toDouble() / 2 })
+                heightProperty().addListener { _, _, newValue ->
+                    materialDesignIconView.glyphSize = newValue.toDouble() / 2
+                }
                 styleClass.clear()
             }
-            taskDescription = textfield {
-                setControlPanelProps()
-                styleClass.clear()
-                prefWidth = 200.0
-                id = "taskDescription"
-                textProperty().bindBidirectional(model.taskDescriptionProperty())
-                addClass(AppStyles.descriptionField)
+            anchorpane {
+                vgrow = Priority.ALWAYS
+                taskDescription = textfield {
+                    setControlPanelProps()
+                    styleClass.clear()
+                    prefWidth = 200.0
+                    id = "taskDescription"
+                    textProperty().bindBidirectional(model.taskDescriptionProperty())
+                    anchorpaneConstraints {
+                        rightAnchor = 0
+                        leftAnchor = 0
+                        topAnchor = 0
+                        bottomAnchor = 0
+                    }
+                    focusedProperty().onChange {
 
-            }
-            textfield {
-                setControlPanelProps()
-                prefWidth = 200.0
-                id = "taskName"
-                textProperty().bindBidirectional(model.taskNameProperty())
+                        if (it) this@anchorpane.newBorderColor(Color.BLUE) else this@anchorpane.clearBorder()
+                    }
+                    hoverProperty().onChange {
+                        if (!focusedProperty().value) {
+                            if (it) {
+                                this@anchorpane.newBorderColor(Color.LIGHTGRAY)
+                            } else {
+                                this@anchorpane.clearBorder()
+                            }
+                        }
+                    }
+                }
+                projectButton = button {
+                    alignment = Pos.CENTER_RIGHT
+                    anchorpaneConstraints {
+                        rightAnchor = 0
+                        bottomAnchor = 0
+                        topAnchor = 0
+                    }
+                    vgrow = Priority.ALWAYS
+                    maxHeight = Double.MAX_VALUE
+                    styleClass.clear()
+                    val materialDesignIconView = MaterialDesignIconView(MaterialDesignIcon.LINK)
+                    graphic = materialDesignIconView
+                    heightProperty().addListener { _, _, newValue ->
+                        materialDesignIconView.glyphSize = newValue.toDouble() / 2
+                    }
+                }
             }
             label {
                 setControlPanelProps()
@@ -85,7 +119,7 @@ class ControlsView : View("My View") {
         heightConstraint.percentHeight = -1.0
         rowConstraints.add(heightConstraint)
 
-        listOf(10.00, 30.00, 30.00, 15.00, 15.00).forEach {
+        listOf(10.00, 60.00, 15.00, 15.00).forEach {
             var constraint = ColumnConstraints()
             constraint.hgrow = Priority.SOMETIMES
             constraint.percentWidth = it

@@ -7,7 +7,8 @@ import tornadofx.*
 class AppStyles : Stylesheet() {
     companion object {
         val dayLabel by cssclass()
-        val descriptionField by cssclass()
+        val anchorPane by cssclass()
+        val textField by cssclass()
     }
 
     init {
@@ -17,14 +18,37 @@ class AppStyles : Stylesheet() {
             println(this)
         }
 
-        descriptionField {
+        anchorPane {
             backgroundColor += Color.WHITE
             text {
                 insets(left = 20.0)
             }
-            and(focused) {
-                borderColor += box(Color.LIGHTBLUE)
-                borderWidth += box(3.px, 0.px, 3.px, 3.px)
+            borderRadius += box(0.px)
+//            and(hover){
+//                borderColor += box(Color.GREEN)
+//                borderWidth += box(3.px, 3.px, 3.px, 3.px)
+//                and(focused){
+//                    borderColor += box(Color.LIGHTBLUE)
+//                    borderWidth += box(3.px, 3.px, 3.px, 3.px)
+//                }
+//            }
+//            and(focused) {
+//                borderColor += box(Color.LIGHTBLUE)
+//                borderWidth += box(3.px, 0.px, 3.px, 3.px)
+//            }
+        }
+        textField {
+            and(hover) {
+                s(anchorPane) {
+                    borderColor += box(Color.GREEN)
+                    borderWidth += box(3.px, 3.px, 3.px, 3.px)
+                }
+                and(focused) {
+                    s(anchorPane) {
+                        borderColor += box(Color.LIGHTBLUE)
+                        borderWidth += box(3.px, 3.px, 3.px, 3.px)
+                    }
+                }
             }
         }
     }

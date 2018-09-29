@@ -1,7 +1,7 @@
 package ru.dkolmogortsev.utils
 
-import javafx.scene.layout.Priority
-import javafx.scene.layout.Region
+import javafx.scene.layout.*
+import javafx.scene.paint.Paint
 import tornadofx.hgrow
 import tornadofx.vgrow
 import java.text.SimpleDateFormat
@@ -35,4 +35,12 @@ fun Region.setControlPanelProps() {
     this.hgrow = Priority.ALWAYS
     this.maxHeight = Double.MAX_VALUE
     this.maxWidth = Double.MAX_VALUE
+}
+
+fun AnchorPane.newBorderColor(color: Paint) {
+    this.border = Border(BorderStroke(color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT))
+}
+
+fun AnchorPane.clearBorder() {
+    this.border = Border.EMPTY
 }

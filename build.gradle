@@ -52,7 +52,6 @@ task sourceJar(type: Jar) {
     from sourceSets.main.allSource
 }
 
-
 sourceSets {
     main {
         kotlin {
